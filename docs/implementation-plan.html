@@ -273,12 +273,13 @@
           <ul class="checklist">
             <li>Task 1. Monorepo 생성</li>
             <li>Task 2. Next.js 웹앱 생성</li>
+            <li>Task 3. Shared package 생성</li>
           </ul>
         </div>
         <div class="card">
           <h3>다음 예정</h3>
-          <p><strong>Task 3. Shared package 생성</strong></p>
-          <p>recipe type, URL validation, recommendation scoring을 <code>packages/shared</code>에 구현한다.</p>
+          <p><strong>Task 4. Supabase DB schema와 RLS 작성</strong></p>
+          <p>migration SQL, index, RLS policy를 <code>supabase/migrations</code>에 작성한다.</p>
         </div>
       </div>
       <div class="card" style="margin-top: 16px;">
@@ -288,6 +289,7 @@
           <li><code>pnpm build</code>: 통과</li>
           <li><code>pnpm typecheck</code>: 통과</li>
           <li><code>pnpm test</code>: 통과</li>
+          <li><code>pnpm --filter @prepper/shared test</code>: 통과, 9 tests</li>
         </ul>
       </div>
     </section>
@@ -333,8 +335,8 @@
         <tbody>
           <tr><td>1</td><td>완료</td><td>Monorepo 생성</td><td>pnpm workspace + Turborepo</td><td><code>pnpm lint</code>, <code>pnpm build</code></td></tr>
           <tr><td>2</td><td>완료</td><td>Next.js 웹앱 생성</td><td><code>apps/web</code></td><td><code>pnpm --filter web build</code></td></tr>
-          <tr><td>3</td><td>다음</td><td>Shared package 생성</td><td><code>packages/shared</code></td><td>shared unit test 통과</td></tr>
-          <tr><td>4</td><td>대기</td><td>Supabase schema/RLS 작성</td><td>migration SQL</td><td><code>supabase db reset</code></td></tr>
+          <tr><td>3</td><td>완료</td><td>Shared package 생성</td><td><code>packages/shared</code></td><td>shared unit test 통과</td></tr>
+          <tr><td>4</td><td>다음</td><td>Supabase schema/RLS 작성</td><td>migration SQL</td><td><code>supabase db reset</code></td></tr>
           <tr><td>5</td><td>대기</td><td>Auth 연결</td><td>로그인 페이지</td><td>magic link 발송 확인</td></tr>
           <tr><td>6</td><td>대기</td><td>URL 검증 로직</td><td>validation 함수 + 테스트</td><td>Vitest 통과</td></tr>
           <tr><td>7</td><td>대기</td><td>수동 레시피 CRUD</td><td>목록/상세/생성</td><td>저장 후 카드 보기</td></tr>

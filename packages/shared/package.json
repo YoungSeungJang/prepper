@@ -6,8 +6,11 @@
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit",
-    "test": "tsc --noEmit",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.7"
   },
   "types": "./dist/index.d.ts",
   "exports": {
