@@ -1,0 +1,17 @@
+{
+  "name": "prepper",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "typescript": "latest"
+  }
+}
