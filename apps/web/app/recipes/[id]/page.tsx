@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { StatusPanel } from "@/components/status-panel";
+import { requireUser } from "@/lib/auth";
 import { getRecipeById } from "@/lib/mock-data";
 
 export default async function RecipeDetailPage({
@@ -11,6 +12,8 @@ export default async function RecipeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await requireUser(`/recipes/${id}`);
+
   const recipe = getRecipeById(id);
 
   if (!recipe) {

@@ -3,9 +3,12 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeading } from "@/components/page-heading";
 import { RecipeCard } from "@/components/recipe-card";
 import { RecipeSearch } from "@/components/recipe-search";
+import { requireUser } from "@/lib/auth";
 import { mockRecipes } from "@/lib/mock-data";
 
-export default function RecipesPage() {
+export default async function RecipesPage() {
+  await requireUser("/recipes");
+
   return (
     <AppShell>
       <PageHeading

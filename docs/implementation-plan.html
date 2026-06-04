@@ -277,12 +277,13 @@
             <li>Task 4. Supabase DB schema와 RLS 작성</li>
             <li>화면 우선 작업</li>
             <li>UI 디자인 리뷰 및 모바일 우선 개선</li>
+            <li>Task 5. Supabase Auth 연결</li>
           </ul>
         </div>
         <div class="card">
           <h3>다음 예정</h3>
-          <p><strong>Task 5. Supabase Auth 연결</strong></p>
-          <p>browser/server client와 로그인 페이지를 <code>apps/web</code>에 구현한다.</p>
+          <p><strong>Task 6. 레시피 URL 검증 로직</strong></p>
+          <p>저장 가능한 URL 형식과 unsupported source 처리를 웹 흐름에 연결한다.</p>
         </div>
       </div>
       <div class="card" style="margin-top: 16px;">
@@ -296,6 +297,7 @@
           <li><code>pnpm --filter web lint</code>: 통과</li>
           <li><code>pnpm --filter web typecheck</code>: 통과</li>
           <li><code>pnpm --filter web test</code>: 통과</li>
+          <li>비로그인 <code>/recipes</code> 접근: <code>/login?next=/recipes</code> 리다이렉트 확인</li>
           <li>Playwright 화면 캡처: 홈, 저장함, 상세 화면을 모바일/데스크톱에서 확인</li>
           <li><code>supabase db reset</code>: 미실행, 현재 머신에 Docker와 Supabase CLI 없음</li>
         </ul>
@@ -345,7 +347,7 @@
           <tr><td>2</td><td>완료</td><td>Next.js 웹앱 생성</td><td><code>apps/web</code></td><td><code>pnpm --filter web build</code></td></tr>
           <tr><td>3</td><td>완료</td><td>Shared package 생성</td><td><code>packages/shared</code></td><td>shared unit test 통과</td></tr>
           <tr><td>4</td><td>구현 완료 / 검증 보류</td><td>Supabase schema/RLS 작성</td><td>migration SQL</td><td><code>supabase db reset</code>은 Docker/Supabase CLI 설치 후 필요</td></tr>
-          <tr><td>5</td><td>다음</td><td>Auth 연결</td><td>로그인 페이지</td><td>magic link 발송 확인</td></tr>
+          <tr><td>5</td><td>구현 완료 / 실제 이메일 검증 필요</td><td>Auth 연결</td><td>이메일 OTP 로그인</td><td>인증 코드 발송/확인, 보호 라우팅</td></tr>
           <tr><td>6</td><td>대기</td><td>URL 검증 로직</td><td>validation 함수 + 테스트</td><td>Vitest 통과</td></tr>
           <tr><td>7</td><td>대기</td><td>수동 레시피 CRUD</td><td>목록/상세/생성</td><td>저장 후 카드 보기</td></tr>
           <tr><td>8</td><td>대기</td><td>import/review 흐름</td><td>mock import Edge Function</td><td>링크 -> 검토 -> 저장</td></tr>

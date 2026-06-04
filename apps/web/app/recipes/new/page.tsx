@@ -2,8 +2,11 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeading } from "@/components/page-heading";
 import { RecipeForm } from "@/components/recipe-form";
 import { StatusPanel } from "@/components/status-panel";
+import { requireUser } from "@/lib/auth";
 
-export default function NewRecipePage() {
+export default async function NewRecipePage() {
+  await requireUser("/recipes/new");
+
   return (
     <AppShell>
       <PageHeading
