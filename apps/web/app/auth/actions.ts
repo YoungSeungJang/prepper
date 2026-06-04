@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { getLoginLinkErrorMessage } from "@/lib/auth-errors";
 import { buildAuthCallbackUrl, getSafeNextPath } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,8 +31,15 @@ export async function requestEmailOtpAction(formData: FormData) {
   });
 
   if (error) {
+    console.error("Failed to send Supabase login link", {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+    });
+    const errorMessage = getLoginLinkErrorMessage(error);
+
     redirect(
-      `/login?email=${encodeURIComponent(email)}&error=${encodeURIComponent("로그인 링크를 보낼 수 없습니다.")}&next=${encodeURIComponent(next)}`,
+      `/login?email=${encodeURIComponent(email)}&error=${encodeURIComponent(errorMessage)}&next=${encodeURIComponent(next)}`,
     );
   }
 
