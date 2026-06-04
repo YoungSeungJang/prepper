@@ -45,7 +45,7 @@
 | Task 4. Supabase DB schema와 RLS 작성 | 구현 완료 / DB 적용 검증 보류 | migration SQL, index, trigger, RLS policy 작성 완료. Docker/Supabase CLI 미설치로 `supabase db reset`은 미실행 |
 | 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
 | UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
-| Task 5. Supabase Auth 연결 | 구현 완료 / 실제 이메일 검증 필요 | Supabase browser/server client, 이메일 OTP 로그인, 로그아웃, 보호 라우팅 구현 |
+| Task 5. Supabase Auth 연결 | 구현 완료 / 실제 이메일 검증 필요 | Supabase browser/server client, Magic Link 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현 |
 
 완료된 검증:
 
@@ -173,7 +173,7 @@ packages/shared/tests/
 | 2 | 완료 | Next.js 웹앱 생성 | `apps/web` | `pnpm --filter web build` |
 | 3 | 완료 | Shared package 생성 | `packages/shared` | shared unit test 통과 |
 | 4 | 구현 완료 / 검증 보류 | Supabase schema/RLS 작성 | migration SQL | `supabase db reset`은 Docker/Supabase CLI 설치 후 필요 |
-| 5 | 구현 완료 / 실제 이메일 검증 필요 | Auth 연결 | 이메일 OTP 로그인 | 인증 코드 발송/확인, 보호 라우팅 |
+| 5 | 구현 완료 / 실제 이메일 검증 필요 | Auth 연결 | Magic Link 로그인 | 로그인 링크 발송/콜백, 보호 라우팅 |
 | 6 | 대기 | URL 검증 로직 | validation 함수 + 테스트 | Vitest 통과 |
 | 7 | 대기 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
 | 8 | 대기 | import/review 흐름 | mock import Edge Function | 링크 -> 검토 -> 저장 |
@@ -443,7 +443,7 @@ npx supabase db reset
 목표:
 
 - Supabase client를 browser/server 용도로 분리한다.
-- email magic link 또는 OTP 방식으로 로그인한다.
+- email magic link 방식으로 로그인한다.
 - 로그인 후 `/recipes`로 이동한다.
 
 생성할 파일:
@@ -455,8 +455,8 @@ npx supabase db reset
 필수 UI:
 
 - 이메일 입력
-- 인증 코드 받기 버튼
-- 인증 코드 입력
+- 로그인 링크 받기 버튼
+- 링크 발송 성공/실패 메시지
 - 발송 성공/실패 메시지
 
 검증:
@@ -469,8 +469,8 @@ pnpm --filter web build
 완료 기준:
 
 - `/login`에서 이메일을 입력할 수 있다.
-- Supabase Auth로 이메일 OTP 요청이 간다.
-- 인증 코드 확인 후 로그인 세션이 생성된다.
+- Supabase Auth로 로그인 링크 요청이 간다.
+- 메일 링크 클릭 후 `/auth/callback`에서 로그인 세션이 생성된다.
 - 로그인한 사용자만 `/recipes`, `/recipes/new`, `/recipes/[id]`를 볼 수 있다.
 - Supabase secret/service role key가 브라우저 코드에 들어가지 않는다.
 

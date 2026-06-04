@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { requestEmailOtpAction, signOutAction, verifyEmailOtpAction } from "@/app/auth/actions";
+import { requestEmailOtpAction, signOutAction } from "@/app/auth/actions";
 import { getSafeNextPath } from "@/lib/auth-redirect";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -59,7 +59,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               저장한 레시피를 다시 열려면
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#1f2420]">
-              이메일 인증으로 시작하기
+              이메일 링크로 시작하기
             </h1>
             {error ? (
               <p className="mt-4 rounded-lg bg-[#f4dddd] px-3 py-2 text-sm font-semibold text-[#7a2f2f]">
@@ -67,32 +67,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </p>
             ) : null}
             {sent ? (
-              <form action={verifyEmailOtpAction} className="mt-6 grid gap-4">
-                <input name="email" type="hidden" value={email} />
-                <input name="next" type="hidden" value={next} />
-                <div className="grid gap-2">
-                  <label className="text-sm font-bold text-[#1f2420]" htmlFor="token">
-                    인증 코드
-                  </label>
-                  <input
-                    id="token"
-                    name="token"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="6자리 코드"
-                    className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
-                  />
-                  <p className="text-xs font-semibold leading-5 text-[#625c54]">
-                    {email} 주소로 받은 코드를 입력해 주세요.
-                  </p>
-                </div>
-                <button
-                  type="submit"
-                  className="h-12 rounded-full bg-[#276f5f] px-4 text-sm font-bold text-white hover:bg-[#1f5b4f]"
-                >
-                  로그인하기
-                </button>
-              </form>
+              <div className="mt-6 rounded-lg bg-[#dcefe6] px-4 py-3 text-sm font-semibold leading-6 text-[#1f5b4f]">
+                {email} 주소로 로그인 링크를 보냈습니다. 메일의 링크를 클릭하면 저장함으로
+                이동합니다.
+              </div>
             ) : (
               <form action={requestEmailOtpAction} className="mt-6 grid gap-4">
                 <input name="next" type="hidden" value={next} />
@@ -113,7 +91,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   type="submit"
                   className="h-12 rounded-full bg-[#276f5f] px-4 text-sm font-bold text-white hover:bg-[#1f5b4f]"
                 >
-                  인증 코드 받기
+                  로그인 링크 받기
                 </button>
               </form>
             )}
