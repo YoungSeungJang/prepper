@@ -14,7 +14,7 @@ export default function RecipesPage() {
         action={
           <Link
             href="/recipes/new"
-            className="inline-flex h-11 items-center rounded-full bg-[#2f6f5e] px-5 text-sm font-semibold text-white hover:bg-[#285f51]"
+            className="inline-flex h-11 items-center rounded-full bg-[#276f5f] px-5 text-sm font-bold text-white hover:bg-[#1f5b4f]"
           >
             추가
           </Link>

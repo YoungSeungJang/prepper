@@ -14,15 +14,15 @@ export default function Home() {
     <AppShell>
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-[#8a7564]">저녁 메뉴 고르는 중이라면</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#211b16]">
-            오늘은 이거 해먹자
+          <p className="text-sm font-bold text-[#276f5f]">저녁 메뉴</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#1f2420]">
+            오늘 먹을 만한 레시피
           </h1>
         </div>
         <div className="hidden sm:block">
           <Link
             href="/recipes/new"
-            className="inline-flex h-11 items-center rounded-full bg-[#2f6f5e] px-5 text-sm font-semibold text-white hover:bg-[#285f51]"
+            className="inline-flex h-11 items-center rounded-full bg-[#276f5f] px-5 text-sm font-bold text-white hover:bg-[#1f5b4f]"
           >
             레시피 추가
           </Link>
@@ -33,10 +33,10 @@ export default function Home() {
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight text-[#211b16]">
+          <h2 className="text-lg font-bold tracking-tight text-[#1f2420]">
             최근 저장한 레시피
           </h2>
-          <Link href="/recipes" className="text-sm font-semibold text-[#2f6f5e]">
+          <Link href="/recipes" className="text-sm font-bold text-[#276f5f]">
             모두 보기
           </Link>
         </div>
@@ -47,8 +47,8 @@ export default function Home() {
         <StatusPanel title="확인 필요한 레시피">
           저장 전 검토가 필요한 레시피가 {needsReviewCount}개 있습니다.
         </StatusPanel>
-        <StatusPanel title="가격 힌트">
-          가격 정보는 참고만 해주세요. 정확한 총 재료비가 아니라 메뉴 선택을 돕는 신호예요.
+        <StatusPanel title="추천 기준">
+          저장일, 주요 재료 가격대, 확인 필요 여부를 함께 봅니다.
         </StatusPanel>
       </section>
     </AppShell>

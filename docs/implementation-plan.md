@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-05-28
+마지막 업데이트: 2026-06-04
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -44,6 +44,7 @@
 | Task 3. Shared package 생성 | 완료 | recipe type, URL validation, recommendation scoring, shared 테스트 9개 추가 |
 | Task 4. Supabase DB schema와 RLS 작성 | 구현 완료 / DB 적용 검증 보류 | migration SQL, index, trigger, RLS policy 작성 완료. Docker/Supabase CLI 미설치로 `supabase db reset`은 미실행 |
 | 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
+| UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
 | Task 5. Supabase Auth 연결 | 다음 예정 | browser/server client, login page 구현 예정 |
 
 완료된 검증:
@@ -56,6 +57,7 @@
 - `pnpm --filter web lint`: 통과
 - `pnpm --filter web typecheck`: 통과
 - `pnpm --filter web test`: 통과
+- Playwright 화면 캡처: 홈, 저장함, 상세 화면을 모바일/데스크톱에서 확인
 - `supabase db reset`: 미실행, 현재 머신에 Docker와 Supabase CLI 없음
 
 ## 1. 구현 원칙

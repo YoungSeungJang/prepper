@@ -1,21 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f1ea;
-  --foreground: #211b16;
+  --background: #f7f6f2;
+  --foreground: #1f2420;
+  --surface: #fffdfa;
+  --surface-muted: #ece6dd;
+  --line: #ddd6cc;
+  --accent: #276f5f;
+  --accent-strong: #1f5b4f;
+  --ink-muted: #6f665c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+html {
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
 }
 
 ::selection {
