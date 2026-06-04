@@ -42,7 +42,9 @@
 | Task 1. Monorepo 생성 | 완료 | `pnpm workspace`, `Turborepo`, `packages/shared`, 기본 디렉토리 생성 완료 |
 | Task 2. Next.js 웹앱 생성 | 완료 | `apps/web` 생성, Supabase/Zod/test tooling 설치, env 검증 파일 추가 |
 | Task 3. Shared package 생성 | 완료 | recipe type, URL validation, recommendation scoring, shared 테스트 9개 추가 |
-| Task 4. Supabase DB schema와 RLS 작성 | 다음 예정 | migration SQL, index, RLS policy 작성 예정 |
+| Task 4. Supabase DB schema와 RLS 작성 | 구현 완료 / DB 적용 검증 보류 | migration SQL, index, trigger, RLS policy 작성 완료. Docker/Supabase CLI 미설치로 `supabase db reset`은 미실행 |
+| 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
+| Task 5. Supabase Auth 연결 | 다음 예정 | browser/server client, login page 구현 예정 |
 
 완료된 검증:
 
@@ -51,6 +53,10 @@
 - `pnpm typecheck`: 통과
 - `pnpm test`: 통과
 - `pnpm --filter @prepper/shared test`: 통과, 9 tests
+- `pnpm --filter web lint`: 통과
+- `pnpm --filter web typecheck`: 통과
+- `pnpm --filter web test`: 통과
+- `supabase db reset`: 미실행, 현재 머신에 Docker와 Supabase CLI 없음
 
 ## 1. 구현 원칙
 
@@ -163,8 +169,8 @@ packages/shared/tests/
 | 1 | 완료 | Monorepo 생성 | pnpm workspace + Turborepo | `pnpm lint`, `pnpm build` |
 | 2 | 완료 | Next.js 웹앱 생성 | `apps/web` | `pnpm --filter web build` |
 | 3 | 완료 | Shared package 생성 | `packages/shared` | shared unit test 통과 |
-| 4 | 다음 | Supabase schema/RLS 작성 | migration SQL | `supabase db reset` |
-| 5 | 대기 | Auth 연결 | 로그인 페이지 | magic link 발송 확인 |
+| 4 | 구현 완료 / 검증 보류 | Supabase schema/RLS 작성 | migration SQL | `supabase db reset`은 Docker/Supabase CLI 설치 후 필요 |
+| 5 | 다음 | Auth 연결 | 로그인 페이지 | magic link 발송 확인 |
 | 6 | 대기 | URL 검증 로직 | validation 함수 + 테스트 | Vitest 통과 |
 | 7 | 대기 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
 | 8 | 대기 | import/review 흐름 | mock import Edge Function | 링크 -> 검토 -> 저장 |

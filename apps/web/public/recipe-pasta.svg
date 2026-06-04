@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="간장 버터 파스타">
+  <rect width="640" height="360" fill="#f2f1ea"/>
+  <path d="M172 210c46-65 90-66 132-4s86 59 132-8 86-64 132 0" fill="none" stroke="#d5a33d" stroke-width="28" stroke-linecap="round"/>
+  <path d="M132 246c72-18 140-14 204 12s124 24 196-2" fill="none" stroke="#8c6239" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="414" cy="132" r="42" fill="#f0d36a"/>
+  <circle cx="238" cy="143" r="30" fill="#2f6f5e"/>
+  <path d="M128 94c112-30 246-33 384-8" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity=".75"/>
+</svg>
