@@ -56,6 +56,10 @@ function getYoutubeVideoId(url: URL) {
   }
 
   if (url.hostname === "youtube.com" || url.hostname.endsWith(".youtube.com")) {
+    if (url.pathname.startsWith("/shorts/")) {
+      const id = url.pathname.split("/").filter(Boolean)[1];
+      return id || undefined;
+    }
     return url.searchParams.get("v") ?? undefined;
   }
 

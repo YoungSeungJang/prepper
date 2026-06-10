@@ -50,6 +50,14 @@ describe("validateRecipeUrl", () => {
     });
   });
 
+  it("detects YouTube Shorts URLs", () => {
+    expect(validateRecipeUrl("https://www.youtube.com/shorts/abc123")).toMatchObject({
+      ok: true,
+      sourceType: "youtube",
+      youtubeVideoId: "abc123",
+    });
+  });
+
   it("accepts web recipe URLs", () => {
     expect(validateRecipeUrl("https://example.com/recipe")).toMatchObject({
       ok: true,

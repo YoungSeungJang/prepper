@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-06-10
+마지막 업데이트: 2026-06-10 (Shorts URL 파싱 버그픽스)
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -52,6 +52,7 @@
 | Task 8-2. 기본 파싱 연결 | 구현 완료 / 실 URL 품질 확인 필요 | 웹 JSON-LD Recipe 파싱, HowToSection/한국어 섹션 fallback, HTML title fallback, YouTube oEmbed title |
 | Task 8-3. 파싱 실패/품질 처리 | 구현 완료 / 실 URL 품질 확인 필요 | 제목만 가져온 초안, 유튜브 제목-only 초안, fetch 실패 fallback에 review 경고 표시 |
 | Task 8-4. 실제 파서 1차 연결 | 구현 완료 / API 키 입력 후 실 URL 확인 필요 | YouTube API description 수집, 일반 웹 본문 추출, OpenAI Structured Outputs 기반 LLM 파싱 |
+| Task 8-4 버그픽스. YouTube Shorts URL 파싱 | 완료 | `packages/shared/src/recipes/validation.ts`의 `getYoutubeVideoId`가 `/shorts/VIDEO_ID` 경로를 처리하지 못해 `sourceType = "web"`으로 잘못 분류되던 문제 수정. Shorts도 YouTube API description 수집 경로로 올바르게 처리됨. 테스트 1개 추가 |
 
 완료된 검증:
 
@@ -59,7 +60,7 @@
 - `pnpm build`: 통과
 - `pnpm typecheck`: 통과
 - `pnpm test`: 통과
-- `pnpm --filter @prepper/shared test`: 통과, 9 tests
+- `pnpm --filter @prepper/shared test`: 통과, 10 tests
 - `pnpm --filter web lint`: 통과
 - `pnpm --filter web typecheck`: 통과
 - `pnpm --filter web test`: 통과
@@ -67,7 +68,7 @@
 - import 품질 경고 유틸 테스트: 통과. 제목-only, YouTube metadata-only 초안 경고 포함
 - LLM 입력용 웹 본문 추출 유틸 테스트: 통과
 - 수동 레시피 CRUD 유틸 테스트: 통과
-- URL 검증 유틸 테스트: 통과
+- URL 검증 유틸 테스트: 통과. YouTube watch, youtu.be, Shorts URL 포함
 - 비로그인 `/recipes` 접근: `/login?next=/recipes` 리다이렉트 확인
 - Playwright 화면 캡처: 홈, 저장함, 상세 화면을 모바일/데스크톱에서 확인
 - `supabase db reset`: 미실행, 현재 머신에 Docker와 Supabase CLI 없음

@@ -284,6 +284,7 @@
             <li>Task 8-2. 기본 파싱 연결 및 웹 fallback 보강</li>
             <li>Task 8-3. 파싱 실패/품질 처리</li>
             <li>Task 8-4. 실제 파서 1차 연결</li>
+            <li>Task 8-4 버그픽스. YouTube Shorts URL 파싱</li>
           </ul>
         </div>
         <div class="card">
@@ -299,10 +300,11 @@
           <li><code>pnpm build</code>: 통과</li>
           <li><code>pnpm typecheck</code>: 통과</li>
           <li><code>pnpm test</code>: 통과</li>
-          <li><code>pnpm --filter @prepper/shared test</code>: 통과, 9 tests</li>
+          <li><code>pnpm --filter @prepper/shared test</code>: 통과, 10 tests</li>
           <li><code>pnpm --filter web lint</code>: 통과</li>
           <li><code>pnpm --filter web typecheck</code>: 통과</li>
           <li><code>pnpm --filter web test</code>: 통과</li>
+          <li>URL 검증 유틸 테스트: 통과. YouTube watch, youtu.be, Shorts URL 포함</li>
           <li>비로그인 <code>/recipes</code> 접근: <code>/login?next=/recipes</code> 리다이렉트 확인</li>
           <li>Playwright 화면 캡처: 홈, 저장함, 상세 화면을 모바일/데스크톱에서 확인</li>
           <li><code>supabase db reset</code>: 미실행, 현재 머신에 Docker와 Supabase CLI 없음</li>
