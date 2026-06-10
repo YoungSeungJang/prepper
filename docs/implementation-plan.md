@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-06-10 (Shorts URL 파싱 버그픽스)
+마지막 업데이트: 2026-06-11 (YouTube transcript fallback 추가)
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -53,6 +53,7 @@
 | Task 8-3. 파싱 실패/품질 처리 | 구현 완료 / 실 URL 품질 확인 필요 | 제목만 가져온 초안, 유튜브 제목-only 초안, fetch 실패 fallback에 review 경고 표시 |
 | Task 8-4. 실제 파서 1차 연결 | 구현 완료 / API 키 입력 후 실 URL 확인 필요 | YouTube API description 수집, 일반 웹 본문 추출, OpenAI Structured Outputs 기반 LLM 파싱 |
 | Task 8-4 버그픽스. YouTube Shorts URL 파싱 | 완료 | `packages/shared/src/recipes/validation.ts`의 `getYoutubeVideoId`가 `/shorts/VIDEO_ID` 경로를 처리하지 못해 `sourceType = "web"`으로 잘못 분류되던 문제 수정. Shorts도 YouTube API description 수집 경로로 올바르게 처리됨. 테스트 1개 추가 |
+| Task 8-5. YouTube transcript fallback | 완료 / 실 URL 품질 확인 필요 | YouTube description에 레시피 단서가 부족하면 watch page의 공개 caption track에서 transcript를 가져와 LLM parser 입력에 추가. transcript가 없거나 실패하면 review warning 유지 |
 
 완료된 검증:
 
@@ -65,8 +66,9 @@
 - `pnpm --filter web typecheck`: 통과
 - `pnpm --filter web test`: 통과
 - 기본 import 파싱 유틸 테스트: 통과. JSON-LD Recipe, HowToSection, 한국어 재료/조리순서 섹션 fallback 포함
-- import 품질 경고 유틸 테스트: 통과. 제목-only, YouTube metadata-only 초안 경고 포함
+- import 품질 경고 유틸 테스트: 통과. 제목-only, YouTube 설명/자막 부족 초안 경고 포함
 - LLM 입력용 웹 본문 추출 유틸 테스트: 통과
+- YouTube transcript fallback 테스트: 통과. description이 부족한 Shorts 입력에서 caption text를 LLM 입력에 추가
 - 수동 레시피 CRUD 유틸 테스트: 통과
 - URL 검증 유틸 테스트: 통과. YouTube watch, youtu.be, Shorts URL 포함
 - 비로그인 `/recipes` 접근: `/login?next=/recipes` 리다이렉트 확인
@@ -188,7 +190,7 @@ packages/shared/tests/
 | 5 | 구현 완료 / 실제 이메일 검증 필요 | Auth 연결 | Magic Link 로그인 | 로그인 링크 발송/콜백, 보호 라우팅 |
 | 6 | 구현 완료 / 로그인 세션 수동 확인 필요 | URL 검증 로직 | `/recipes/new` submit action | Vitest 통과, 로그인 후 폼 수동 확인 필요 |
 | 7 | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
-| 8 | 구현 완료 / API 키 입력 후 실 URL 확인 필요 | import/review 흐름 | DB 기반 review 초안 + YouTube API + 웹 LLM 파싱 | 실제 블로그/유튜브 링크 품질 확인 필요 |
+| 8 | 구현 완료 / 실 URL 품질 확인 필요 | import/review 흐름 | DB 기반 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱 | 실제 블로그/유튜브 링크 품질 확인 필요 |
 | 9 | 대기 | mock price hint | 가격 힌트 섹션 | 가격 실패가 저장을 막지 않음 |
 | 10 | 대기 | 추천 홈 | 추천 카드/empty state | 저장 레시피 추천 표시 |
 | 11 | 대기 | E2E 테스트 | Playwright 테스트 | 핵심 흐름 통과 |
@@ -587,7 +589,8 @@ pnpm --filter web build
 - 사용자가 URL을 붙여넣으면 레시피 초안이 생성된다.
 - 초안은 바로 저장되지 않고 review 화면에서 확인 후 저장된다.
 - 첫 버전은 서버 액션 기반 parser로 시작한다. Supabase Edge Function 분리는 배포/운영 단계에서 다시 판단한다.
-- YouTube는 YouTube Data API `videos.list(part=snippet)`로 title/description을 가져온 뒤 LLM parser에 보낸다.
+- YouTube는 YouTube Data API `videos.list(part=snippet)`로 title/description을 가져온다.
+- description에 레시피 단서가 부족하면 공개 caption track의 transcript를 가져와 LLM parser 입력에 추가한다.
 - 일반 웹/블로그는 JSON-LD를 주 경로로 믿지 않고, HTML에서 읽을 만한 본문 텍스트를 추출해 LLM parser에 보낸다.
 - OpenAI API 키가 없거나 LLM 파싱이 실패하면 기존 비용 없는 fallback parser와 review warning을 사용한다.
 
@@ -650,7 +653,8 @@ pnpm --filter web build
 - double submit을 막는다.
 - 구조화 데이터가 일부 다른 웹 페이지도 제목만 저장되지 않고 재료/순서 후보를 채운다.
 - 제목만 가져온 초안은 review 화면에서 재료/조리순서 확인 경고를 보여준다.
-- YouTube description 또는 일반 웹 본문에서 LLM parser가 재료/조리순서 초안을 만든다.
+- YouTube description/transcript 또는 일반 웹 본문에서 LLM parser가 재료/조리순서 초안을 만든다.
+- YouTube description/transcript 모두 레시피 정보를 충분히 제공하지 못하면 review warning을 보여준다.
 
 ### Task 9. Mock 가격 힌트 구현
 

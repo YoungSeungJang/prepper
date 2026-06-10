@@ -285,6 +285,7 @@
             <li>Task 8-3. 파싱 실패/품질 처리</li>
             <li>Task 8-4. 실제 파서 1차 연결</li>
             <li>Task 8-4 버그픽스. YouTube Shorts URL 파싱</li>
+            <li>Task 8-5. YouTube transcript fallback</li>
           </ul>
         </div>
         <div class="card">
@@ -305,6 +306,7 @@
           <li><code>pnpm --filter web typecheck</code>: 통과</li>
           <li><code>pnpm --filter web test</code>: 통과</li>
           <li>URL 검증 유틸 테스트: 통과. YouTube watch, youtu.be, Shorts URL 포함</li>
+          <li>YouTube transcript fallback 테스트: 통과. description이 부족한 Shorts 입력에서 caption text를 LLM 입력에 추가</li>
           <li>비로그인 <code>/recipes</code> 접근: <code>/login?next=/recipes</code> 리다이렉트 확인</li>
           <li>Playwright 화면 캡처: 홈, 저장함, 상세 화면을 모바일/데스크톱에서 확인</li>
           <li><code>supabase db reset</code>: 미실행, 현재 머신에 Docker와 Supabase CLI 없음</li>
@@ -358,7 +360,7 @@
           <tr><td>5</td><td>구현 완료 / 실제 이메일 검증 필요</td><td>Auth 연결</td><td>Magic Link 로그인</td><td>로그인 링크 발송/콜백, 보호 라우팅</td></tr>
           <tr><td>6</td><td>구현 완료 / 로그인 세션 수동 확인 필요</td><td>URL 검증 로직</td><td><code>/recipes/new</code> submit action</td><td>Vitest 통과, 로그인 후 폼 수동 확인 필요</td></tr>
           <tr><td>7</td><td>구현 완료 / Supabase migration 적용 후 수동 확인 필요</td><td>수동 레시피 CRUD</td><td>목록/상세/생성</td><td>저장 후 카드 보기</td></tr>
-          <tr><td>8</td><td>구현 완료 / API 키 입력 후 실 URL 확인 필요</td><td>import/review 흐름</td><td>DB 기반 review 초안 + YouTube API + 웹 LLM 파싱</td><td>실제 블로그/유튜브 링크 품질 확인 필요</td></tr>
+          <tr><td>8</td><td>구현 완료 / 실 URL 품질 확인 필요</td><td>import/review 흐름</td><td>DB 기반 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱</td><td>실제 블로그/유튜브 링크 품질 확인 필요</td></tr>
           <tr><td>9</td><td>대기</td><td>mock price hint</td><td>가격 힌트 섹션</td><td>가격 실패가 저장을 막지 않음</td></tr>
           <tr><td>10</td><td>대기</td><td>추천 홈</td><td>추천 카드/empty state</td><td>저장 레시피 추천 표시</td></tr>
           <tr><td>11</td><td>대기</td><td>E2E 테스트</td><td>Playwright 테스트</td><td>핵심 흐름 통과</td></tr>
@@ -543,7 +545,7 @@ npx supabase db reset</code></pre>
         </header>
         <p>URL을 붙여넣으면 기본 parser가 초안을 만들고, 사용자가 review 화면에서 확인 후 저장한다.</p>
         <div class="note">
-          YouTube는 YouTube Data API로 title/description을 가져오고, 일반 웹/블로그는 HTML에서 읽을 만한 본문 텍스트를 추출해 OpenAI Structured Outputs 기반 LLM parser에 보낸다. API 키가 없거나 파싱이 실패하면 기존 fallback parser와 review warning을 사용한다.
+          YouTube는 YouTube Data API로 title/description을 가져오고, description에 레시피 단서가 부족하면 공개 caption track의 transcript를 LLM 입력에 추가한다. 일반 웹/블로그는 HTML에서 읽을 만한 본문 텍스트를 추출해 OpenAI Structured Outputs 기반 LLM parser에 보낸다. API 키가 없거나 파싱이 실패하면 기존 fallback parser와 review warning을 사용한다.
         </div>
         <pre><code>importing -> needs_review -> saved
 importing -> failed
@@ -555,7 +557,8 @@ failed -> importing</code></pre>
           <li>double submit 방지</li>
           <li>구조화 데이터가 일부 다른 웹 페이지도 재료/순서 후보를 채움</li>
           <li>제목만 가져온 초안은 review 화면에서 재료/조리순서 확인 경고를 보여줌</li>
-          <li>YouTube description 또는 일반 웹 본문에서 LLM parser가 재료/조리순서 초안을 만듦</li>
+          <li>YouTube description/transcript 또는 일반 웹 본문에서 LLM parser가 재료/조리순서 초안을 만듦</li>
+          <li>YouTube description/transcript 모두 레시피 정보를 충분히 제공하지 못하면 review warning을 보여줌</li>
         </ul>
       </article>
 

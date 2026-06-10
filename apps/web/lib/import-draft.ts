@@ -241,7 +241,7 @@ export function buildImportQualityWarnings(
 
   if (sourceType === "youtube" && imported.ingredients.length === 0 && imported.steps.length === 0) {
     warnings.add(
-      "유튜브는 현재 제목만 가져왔어요. 재료와 조리 순서를 직접 확인해 주세요.",
+      "유튜브 설명/자막에서 레시피 정보를 충분히 찾지 못했어요. 재료와 조리 순서를 직접 확인해 주세요.",
     );
   }
 
@@ -328,13 +328,108 @@ function getYoutubeVideoId(sourceUrl: string) {
   }
 }
 
-async function fetchYoutubeSourceText(sourceUrl: string) {
+function hasLikelyRecipeDetails(text: string) {
+  return /재료|만드는\s*법|만들기|조리|레시피|ingredients?|instructions?|directions?/i.test(
+    text,
+  );
+}
+
+function extractYoutubePlayerResponse(html: string) {
+  const json = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/)?.[1];
+  if (!json) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(json) as {
+      captions?: {
+        playerCaptionsTracklistRenderer?: {
+          captionTracks?: Array<{
+            baseUrl?: string;
+            languageCode?: string;
+          }>;
+        };
+      };
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseTranscriptText(rawText: string) {
+  try {
+    const body = JSON.parse(rawText) as {
+      events?: Array<{
+        segs?: Array<{ utf8?: string }>;
+      }>;
+    };
+    const text = body.events
+      ?.flatMap((event) => event.segs ?? [])
+      .map((segment) => segment.utf8 ?? "")
+      .join("");
+
+    if (text?.trim()) {
+      return text.replace(/\s+/g, " ").trim();
+    }
+  } catch {
+    // Fall through to XML parsing.
+  }
+
+  return Array.from(rawText.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/gi))
+    .map((match) => decodeBasicEntities(stripTags(match[1] ?? "")))
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function fetchYoutubeTranscript(videoId: string) {
+  try {
+    const watchUrl = new URL("https://www.youtube.com/watch");
+    watchUrl.searchParams.set("v", videoId);
+    watchUrl.searchParams.set("hl", "ko");
+
+    const response = await fetch(watchUrl);
+    if (!response.ok) {
+      return "";
+    }
+
+    const playerResponse = extractYoutubePlayerResponse(await response.text());
+    const tracks =
+      playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
+    const track =
+      tracks.find((item) => item.languageCode === "ko") ??
+      tracks.find((item) => item.languageCode === "en") ??
+      tracks[0];
+
+    if (!track?.baseUrl) {
+      return "";
+    }
+
+    const transcriptResponse = await fetch(track.baseUrl);
+    if (!transcriptResponse.ok) {
+      return "";
+    }
+
+    return parseTranscriptText(await transcriptResponse.text());
+  } catch {
+    return "";
+  }
+}
+
+export async function fetchYoutubeSourceText(sourceUrl: string) {
   const videoId = getYoutubeVideoId(sourceUrl);
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   if (!videoId || !apiKey) {
     const title = await fetchYoutubeTitle(sourceUrl);
-    return title ? `유튜브 제목: ${title}` : "";
+    const transcript = videoId ? await fetchYoutubeTranscript(videoId) : "";
+    return [
+      title ? `유튜브 제목: ${title}` : "",
+      transcript ? `자막:\n${transcript}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .slice(0, maxParserInputLength);
   }
 
   const url = new URL("https://www.googleapis.com/youtube/v3/videos");
@@ -363,11 +458,16 @@ async function fetchYoutubeSourceText(sourceUrl: string) {
     throw new Error("YouTube video not found");
   }
 
+  const transcript = hasLikelyRecipeDetails(snippet.description ?? "")
+    ? ""
+    : await fetchYoutubeTranscript(videoId);
+
   return [
     `URL: ${sourceUrl}`,
     snippet.title ? `제목: ${snippet.title}` : "",
     snippet.channelTitle ? `채널: ${snippet.channelTitle}` : "",
     snippet.description ? `설명:\n${snippet.description}` : "",
+    transcript ? `자막:\n${transcript}` : "",
   ]
     .filter(Boolean)
     .join("\n\n")
