@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
+import { buildImportedRecipeDraft } from "@/lib/import-draft";
 import { parseRecipeDraftForm } from "@/lib/recipe-draft";
 import { validateRecipeImportUrl } from "@/lib/recipe-import";
 import { createReviewDraft, updateRecipeFromDraft } from "@/lib/recipes/queries";
@@ -19,7 +20,13 @@ export async function startRecipeImportAction(formData: FormData) {
 
   let recipeId: string;
   try {
+    const draft = await buildImportedRecipeDraft({
+      sourceUrl: result.sourceUrl,
+      sourceType: result.sourceType,
+    });
+
     recipeId = await createReviewDraft({
+      draft,
       sourceUrl: result.sourceUrl,
       sourceType: result.sourceType,
       sourceVideoId: result.youtubeVideoId,
