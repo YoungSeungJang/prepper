@@ -3,9 +3,25 @@ import { PageHeading } from "@/components/page-heading";
 import { RecipeForm } from "@/components/recipe-form";
 import { StatusPanel } from "@/components/status-panel";
 import { requireUser } from "@/lib/auth";
+import { startRecipeImportAction } from "../actions";
 
-export default async function NewRecipePage() {
+type NewRecipePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getSearchParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+) {
+  const value = params[key];
+  return typeof value === "string" ? value : "";
+}
+
+export default async function NewRecipePage({ searchParams }: NewRecipePageProps) {
   await requireUser("/recipes/new");
+  const params = await searchParams;
+  const error = getSearchParam(params, "error");
+  const sourceUrl = getSearchParam(params, "sourceUrl");
 
   return (
     <AppShell>
@@ -14,7 +30,12 @@ export default async function NewRecipePage() {
         description="링크를 붙여넣고 요리할 때 바로 볼 카드로 정리합니다."
       />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <RecipeForm mode="new" />
+        <RecipeForm
+          action={startRecipeImportAction}
+          error={error}
+          mode="new"
+          sourceUrl={sourceUrl}
+        />
         <div className="grid content-start gap-4">
           <StatusPanel title="지원 소스">
             YouTube와 일반 웹 레시피 링크를 먼저 지원합니다.
