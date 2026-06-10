@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildImportQualityWarnings, parseRecipeHtmlDraft } from "./import-draft";
+import {
+  buildImportQualityWarnings,
+  extractReadableTextFromHtml,
+  parseRecipeHtmlDraft,
+} from "./import-draft";
 
 describe("parseRecipeHtmlDraft", () => {
   it("extracts JSON-LD Recipe fields", () => {
@@ -111,5 +115,32 @@ describe("parseRecipeHtmlDraft", () => {
       "재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
       "조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
     ]);
+  });
+
+  it("extracts readable web text for LLM parsing", () => {
+    const text = extractReadableTextFromHtml(
+      `
+        <html>
+          <head>
+            <title>닭볶음탕</title>
+            <meta name="description" content="매콤한 닭볶음탕 레시피">
+          </head>
+          <body>
+            <script>window.ad = true;</script>
+            <main>
+              <h1>닭볶음탕</h1>
+              <p>닭 1마리</p>
+              <p>감자와 양념을 넣고 끓인다.</p>
+            </main>
+          </body>
+        </html>
+      `,
+      "https://example.com/recipe",
+    );
+
+    expect(text).toContain("제목: 닭볶음탕");
+    expect(text).toContain("설명: 매콤한 닭볶음탕 레시피");
+    expect(text).toContain("닭 1마리");
+    expect(text).not.toContain("window.ad");
   });
 });

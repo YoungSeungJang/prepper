@@ -5,6 +5,8 @@ type ImportedDraft = {
   servings?: string;
   ingredients: string[];
   steps: string[];
+  warnings?: string[];
+  confidence?: number;
 };
 
 type ImportDraftInput = {
@@ -16,6 +18,8 @@ export type ImportedRecipeDraft = Awaited<ReturnType<typeof buildImportedRecipeD
 
 const fallbackIngredients = ["재료를 확인해 주세요"];
 const fallbackSteps = ["원문을 보고 조리 순서를 확인해 주세요."];
+const openAiModel = process.env.OPENAI_MODEL || "gpt-5.5";
+const maxParserInputLength = 12000;
 
 function stripTags(value: string) {
   return value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
@@ -127,6 +131,45 @@ function getPageTitle(html: string) {
   return title ? decodeBasicEntities(stripTags(title)) : "";
 }
 
+function getMetaContent(html: string, name: string) {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    `<meta[^>]+(?:name|property)=["']${escapedName}["'][^>]+content=["']([^"']*)["'][^>]*>`,
+    "i",
+  );
+  const reversePattern = new RegExp(
+    `<meta[^>]+content=["']([^"']*)["'][^>]+(?:name|property)=["']${escapedName}["'][^>]*>`,
+    "i",
+  );
+  const content = html.match(pattern)?.[1] ?? html.match(reversePattern)?.[1];
+  return content ? decodeBasicEntities(stripTags(content)) : "";
+}
+
+export function extractReadableTextFromHtml(html: string, sourceUrl: string) {
+  const title = getPageTitle(html);
+  const description =
+    getMetaContent(html, "description") || getMetaContent(html, "og:description");
+  const bodyMatch =
+    html.match(/<article[^>]*>([\s\S]*?)<\/article>/i) ??
+    html.match(/<main[^>]*>([\s\S]*?)<\/main>/i) ??
+    html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  const body = bodyMatch?.[1] ?? html;
+  const cleanedBody = body
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "");
+  const readableBody = splitLines(cleanedBody).join("\n");
+
+  return [
+    `URL: ${sourceUrl}`,
+    title ? `제목: ${title}` : "",
+    description ? `설명: ${description}` : "",
+    readableBody ? `본문:\n${readableBody}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+    .slice(0, maxParserInputLength);
+}
+
 function extractSectionItems(html: string, headingPattern: RegExp) {
   const headingMatch = Array.from(
     html.matchAll(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi),
@@ -194,23 +237,23 @@ export function buildImportQualityWarnings(
   imported: Pick<ImportedDraft, "ingredients" | "steps">,
   sourceType: SourceType,
 ) {
-  const warnings: string[] = [];
+  const warnings = new Set<string>();
 
-  if (sourceType === "youtube") {
-    warnings.push(
+  if (sourceType === "youtube" && imported.ingredients.length === 0 && imported.steps.length === 0) {
+    warnings.add(
       "유튜브는 현재 제목만 가져왔어요. 재료와 조리 순서를 직접 확인해 주세요.",
     );
   }
 
   if (imported.ingredients.length === 0) {
-    warnings.push("재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.");
+    warnings.add("재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.");
   }
 
   if (imported.steps.length === 0) {
-    warnings.push("조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.");
+    warnings.add("조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.");
   }
 
-  return warnings;
+  return Array.from(warnings);
 }
 
 function getImportConfidence(warnings: string[]) {
@@ -267,19 +310,242 @@ async function fetchYoutubeTitle(sourceUrl: string) {
   return body.title?.trim();
 }
 
+function getYoutubeVideoId(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl);
+
+    if (url.hostname === "youtu.be") {
+      return url.pathname.split("/").filter(Boolean)[0] ?? "";
+    }
+
+    if (url.pathname.startsWith("/shorts/")) {
+      return url.pathname.split("/").filter(Boolean)[1] ?? "";
+    }
+
+    return url.searchParams.get("v") ?? "";
+  } catch {
+    return "";
+  }
+}
+
+async function fetchYoutubeSourceText(sourceUrl: string) {
+  const videoId = getYoutubeVideoId(sourceUrl);
+  const apiKey = process.env.YOUTUBE_API_KEY;
+
+  if (!videoId || !apiKey) {
+    const title = await fetchYoutubeTitle(sourceUrl);
+    return title ? `유튜브 제목: ${title}` : "";
+  }
+
+  const url = new URL("https://www.googleapis.com/youtube/v3/videos");
+  url.searchParams.set("part", "snippet");
+  url.searchParams.set("id", videoId);
+  url.searchParams.set("key", apiKey);
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`YouTube API failed: ${response.status}`);
+  }
+
+  const body = (await response.json()) as {
+    items?: Array<{
+      snippet?: {
+        title?: string;
+        description?: string;
+        channelTitle?: string;
+      };
+    }>;
+  };
+  const snippet = body.items?.[0]?.snippet;
+
+  if (!snippet) {
+    throw new Error("YouTube video not found");
+  }
+
+  return [
+    `URL: ${sourceUrl}`,
+    snippet.title ? `제목: ${snippet.title}` : "",
+    snippet.channelTitle ? `채널: ${snippet.channelTitle}` : "",
+    snippet.description ? `설명:\n${snippet.description}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+    .slice(0, maxParserInputLength);
+}
+
+function parseOpenAiOutputText(value: unknown): string {
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+
+  const record = value as { output_text?: unknown; output?: unknown };
+  if (typeof record.output_text === "string") {
+    return record.output_text;
+  }
+
+  if (!Array.isArray(record.output)) {
+    return "";
+  }
+
+  for (const item of record.output) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const content = (item as { content?: unknown }).content;
+    if (!Array.isArray(content)) {
+      continue;
+    }
+
+    for (const part of content) {
+      if (part && typeof part === "object") {
+        const text = (part as { text?: unknown }).text;
+        if (typeof text === "string") {
+          return text;
+        }
+      }
+    }
+  }
+
+  return "";
+}
+
+function normalizeLlmDraft(value: unknown, sourceUrl: string): ImportedDraft | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const title = asText(record.title);
+  const servings = asText(record.servings);
+  const ingredients = parseIngredients(record.ingredients);
+  const steps = parseIngredients(record.steps);
+  const warnings = parseIngredients(record.warnings);
+  const confidence =
+    typeof record.confidence === "number" && Number.isFinite(record.confidence)
+      ? Math.max(0, Math.min(1, record.confidence))
+      : undefined;
+
+  if (!title && ingredients.length === 0 && steps.length === 0) {
+    return null;
+  }
+
+  return {
+    title: title || sourceUrl,
+    servings: servings || undefined,
+    ingredients,
+    steps,
+    warnings,
+    confidence,
+  };
+}
+
+async function parseRecipeWithLlm(input: {
+  sourceType: SourceType;
+  sourceUrl: string;
+  sourceText: string;
+}) {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey || !input.sourceText.trim()) {
+    return null;
+  }
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: openAiModel,
+      input: [
+        {
+          role: "system",
+          content:
+            "너는 한국어 레시피 링크 import 파서다. 입력 텍스트에서 실제 요리 레시피만 추출한다. 광고, 댓글, 추천글, 저작권 문구, 관련 글은 제외한다. 불확실한 값은 만들지 말고 warnings에 적는다.",
+        },
+        {
+          role: "user",
+          content: `sourceType: ${input.sourceType}\nsourceUrl: ${input.sourceUrl}\n\n${input.sourceText}`,
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "recipe_import",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              title: { type: "string" },
+              servings: { type: "string" },
+              ingredients: {
+                type: "array",
+                items: { type: "string" },
+              },
+              steps: {
+                type: "array",
+                items: { type: "string" },
+              },
+              warnings: {
+                type: "array",
+                items: { type: "string" },
+              },
+              confidence: {
+                type: "number",
+                minimum: 0,
+                maximum: 1,
+              },
+            },
+            required: ["title", "servings", "ingredients", "steps", "warnings", "confidence"],
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI parser failed: ${response.status}`);
+  }
+
+  const body = await response.json();
+  const outputText = parseOpenAiOutputText(body);
+
+  if (!outputText) {
+    throw new Error("OpenAI parser returned no text");
+  }
+
+  return normalizeLlmDraft(JSON.parse(outputText), input.sourceUrl);
+}
+
 export async function buildImportedRecipeDraft(input: ImportDraftInput) {
   let imported: ImportedDraft;
   let importFailed = false;
 
   try {
     if (input.sourceType === "youtube") {
-      imported = {
-        title: (await fetchYoutubeTitle(input.sourceUrl)) ?? "유튜브 레시피",
-        ingredients: [],
-        steps: [],
-      };
+      const sourceText = await fetchYoutubeSourceText(input.sourceUrl);
+      imported =
+        (await parseRecipeWithLlm({
+          sourceType: input.sourceType,
+          sourceUrl: input.sourceUrl,
+          sourceText,
+        })) ?? {
+          title: sourceText.replace(/^유튜브 제목:\s*/, "").trim() || "유튜브 레시피",
+          ingredients: [],
+          steps: [],
+        };
     } else {
-      imported = parseRecipeHtmlDraft(await fetchText(input.sourceUrl), input.sourceUrl);
+      const html = await fetchText(input.sourceUrl);
+      imported =
+        (await parseRecipeWithLlm({
+          sourceType: input.sourceType,
+          sourceUrl: input.sourceUrl,
+          sourceText: extractReadableTextFromHtml(html, input.sourceUrl),
+        })) ?? parseRecipeHtmlDraft(html, input.sourceUrl);
     }
   } catch (error) {
     console.error("Failed to import recipe draft", error);
@@ -291,7 +557,10 @@ export async function buildImportedRecipeDraft(input: ImportDraftInput) {
     };
   }
 
-  const warnings = buildImportQualityWarnings(imported, input.sourceType);
+  const warnings = [
+    ...buildImportQualityWarnings(imported, input.sourceType),
+    ...(imported.warnings ?? []),
+  ];
   if (importFailed) {
     warnings.unshift("링크 내용을 가져오지 못했어요. 제목, 재료, 조리 순서를 직접 확인해 주세요.");
   }
@@ -317,7 +586,7 @@ export async function buildImportedRecipeDraft(input: ImportDraftInput) {
     servings: imported.servings,
     ingredients,
     steps,
-    parseConfidence: getImportConfidence(warnings),
+    parseConfidence: imported.confidence ?? getImportConfidence(warnings),
     parseWarnings: warnings,
   };
 }
