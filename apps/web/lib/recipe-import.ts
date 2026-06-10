@@ -1,10 +1,15 @@
 import { validateRecipeUrl } from "@prepper/shared";
 
-type ImportRedirectResult =
-  | { ok: true; destination: string }
+type RecipeImportUrlResult =
+  | {
+      ok: true;
+      sourceUrl: string;
+      sourceType: "youtube" | "web";
+      youtubeVideoId?: string;
+    }
   | { ok: false; destination: string };
 
-export function buildRecipeImportRedirect(rawUrl: string): ImportRedirectResult {
+export function validateRecipeImportUrl(rawUrl: string): RecipeImportUrlResult {
   const validation = validateRecipeUrl(rawUrl);
 
   if (!validation.ok) {
@@ -19,17 +24,10 @@ export function buildRecipeImportRedirect(rawUrl: string): ImportRedirectResult 
     };
   }
 
-  const params = new URLSearchParams({
-    sourceUrl: validation.url.toString(),
-    sourceType: validation.sourceType,
-  });
-
-  if (validation.youtubeVideoId) {
-    params.set("youtubeVideoId", validation.youtubeVideoId);
-  }
-
   return {
     ok: true,
-    destination: `/recipes/jeyuk/review?${params.toString()}`,
+    sourceUrl: validation.url.toString(),
+    sourceType: validation.sourceType,
+    youtubeVideoId: validation.youtubeVideoId,
   };
 }

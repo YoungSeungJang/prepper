@@ -5,6 +5,7 @@ import { RecipeForm } from "@/components/recipe-form";
 import { StatusPanel } from "@/components/status-panel";
 import { requireUser } from "@/lib/auth";
 import { getRecipeById } from "@/lib/mock-data";
+import { getRecipe } from "@/lib/recipes/queries";
 import { saveRecipeAction } from "../../actions";
 
 export default async function ReviewRecipePage({
@@ -18,10 +19,8 @@ export default async function ReviewRecipePage({
   await requireUser(`/recipes/${id}/review`);
 
   const query = await searchParams;
-  const sourceUrl = typeof query.sourceUrl === "string" ? query.sourceUrl : undefined;
-  const sourceType = query.sourceType === "youtube" ? "youtube" : "web";
   const error = typeof query.error === "string" ? query.error : "";
-  const recipe = getRecipeById(id);
+  const recipe = (await getRecipe(id)) ?? getRecipeById(id);
 
   if (!recipe) {
     notFound();
@@ -38,8 +37,13 @@ export default async function ReviewRecipePage({
           action={saveRecipeAction}
           error={error}
           mode="review"
-          sourceType={sourceType}
-          sourceUrl={sourceUrl}
+          recipeId={recipe.id}
+          servings={recipe.servings}
+          sourceType={recipe.sourceType}
+          sourceUrl={recipe.sourceUrl}
+          steps={recipe.steps}
+          title={recipe.title}
+          ingredients={recipe.ingredients}
         />
         <div className="grid content-start gap-4">
           <StatusPanel title="분석 상태">

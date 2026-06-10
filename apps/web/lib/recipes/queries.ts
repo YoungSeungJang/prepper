@@ -140,6 +140,148 @@ export async function createRecipe(draft: RecipeDraftInput, userId: string) {
   return recipeId;
 }
 
+export async function createReviewDraft(input: {
+  sourceUrl: string;
+  sourceType: SourceType;
+  sourceVideoId?: string;
+  userId: string;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipes")
+    .insert({
+      user_id: input.userId,
+      title: input.sourceType === "youtube" ? "유튜브 레시피" : "웹 레시피",
+      source_url: input.sourceUrl,
+      source_type: input.sourceType,
+      source_video_id: input.sourceVideoId,
+      thumbnail_url: "/recipe-jeyuk.svg",
+      servings: "1-2인분",
+      status: "needs_review",
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    throw error ?? new Error("Review draft insert failed");
+  }
+
+  const recipeId = data.id as string;
+  const { error: ingredientsError } = await supabase.from("ingredients").insert([
+    {
+      recipe_id: recipeId,
+      raw_text: "돼지고기 앞다리살 300g",
+      importance: "primary",
+    },
+    {
+      recipe_id: recipeId,
+      raw_text: "양파 1/2개",
+      importance: "secondary",
+    },
+    {
+      recipe_id: recipeId,
+      raw_text: "고추장 1큰술",
+      importance: "seasoning",
+    },
+  ]);
+
+  if (ingredientsError) {
+    throw ingredientsError;
+  }
+
+  const { error: stepsError } = await supabase.from("recipe_steps").insert([
+    {
+      recipe_id: recipeId,
+      position: 1,
+      body: "재료를 먹기 좋은 크기로 썬다.",
+    },
+    {
+      recipe_id: recipeId,
+      position: 2,
+      body: "양념을 섞는다.",
+    },
+    {
+      recipe_id: recipeId,
+      position: 3,
+      body: "팬에 넣고 볶는다.",
+    },
+  ]);
+
+  if (stepsError) {
+    throw stepsError;
+  }
+
+  return recipeId;
+}
+
+export async function updateRecipeFromDraft(recipeId: string, draft: RecipeDraftInput) {
+  const supabase = await createClient();
+  const { error: recipeError } = await supabase
+    .from("recipes")
+    .update({
+      title: draft.title,
+      source_url: draft.sourceUrl,
+      source_type: draft.sourceType,
+      thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+      servings: draft.servings ?? "1인분",
+      status: "saved",
+    })
+    .eq("id", recipeId);
+
+  if (recipeError) {
+    throw recipeError;
+  }
+
+  const { error: ingredientsDeleteError } = await supabase
+    .from("ingredients")
+    .delete()
+    .eq("recipe_id", recipeId);
+
+  if (ingredientsDeleteError) {
+    throw ingredientsDeleteError;
+  }
+
+  const { error: stepsDeleteError } = await supabase
+    .from("recipe_steps")
+    .delete()
+    .eq("recipe_id", recipeId);
+
+  if (stepsDeleteError) {
+    throw stepsDeleteError;
+  }
+
+  if (draft.ingredients.length > 0) {
+    const { error } = await supabase.from("ingredients").insert(
+      draft.ingredients.map((ingredient) => ({
+        recipe_id: recipeId,
+        raw_text: ingredient.rawText,
+        normalized_name: ingredient.normalizedName,
+        amount_value: ingredient.amountValue,
+        amount_unit: ingredient.amountUnit,
+        importance: ingredient.importance,
+      })),
+    );
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  if (draft.steps.length > 0) {
+    const { error } = await supabase.from("recipe_steps").insert(
+      draft.steps.map((step) => ({
+        recipe_id: recipeId,
+        position: step.position,
+        body: step.body,
+      })),
+    );
+
+    if (error) {
+      throw error;
+    }
+  }
+}
+
 export function getFallbackRecipes(): RecipeListItem[] {
   return mockRecipes;
 }

@@ -5,15 +5,30 @@ export function RecipeForm({
   action,
   error,
   mode,
+  recipeId,
+  servings,
   sourceUrl,
   sourceType = "web",
+  steps,
+  title,
+  ingredients,
 }: {
   action?: (formData: FormData) => void | Promise<void>;
   error?: string;
   mode: "new" | "review";
+  recipeId?: string;
+  servings?: string;
   sourceUrl?: string;
   sourceType?: "youtube" | "web";
+  steps?: string[];
+  title?: string;
+  ingredients?: Array<{ rawText: string }>;
 }) {
+  const ingredientText =
+    ingredients?.map((ingredient) => ingredient.rawText).join("\n") ??
+    (mode === "review" ? sampleIngredients : "");
+  const stepText = steps?.join("\n") ?? (mode === "review" ? sampleSteps : "");
+
   return (
     <form
       action={action}
@@ -24,6 +39,7 @@ export function RecipeForm({
           {error}
         </p>
       ) : null}
+      {recipeId ? <input name="recipeId" type="hidden" value={recipeId} /> : null}
       <input name="sourceType" type="hidden" value={sourceType} />
       <div className="grid gap-2">
         <label className="text-sm font-bold text-[#1f2420]" htmlFor="source-url">
@@ -44,7 +60,7 @@ export function RecipeForm({
         <input
           id="title"
           name="title"
-          defaultValue={mode === "review" ? "제육볶음" : ""}
+          defaultValue={title ?? (mode === "review" ? "제육볶음" : "")}
           placeholder="레시피 제목"
           className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
         />
@@ -56,7 +72,7 @@ export function RecipeForm({
         <input
           id="servings"
           name="servings"
-          defaultValue={mode === "review" ? "1-2인분" : ""}
+          defaultValue={servings ?? (mode === "review" ? "1-2인분" : "")}
           placeholder="2인분"
           className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
         />
@@ -68,7 +84,7 @@ export function RecipeForm({
         <textarea
           id="ingredients"
           name="ingredients"
-          defaultValue={mode === "review" ? sampleIngredients : ""}
+          defaultValue={ingredientText}
           placeholder={sampleIngredients}
           rows={5}
           className="resize-none rounded-lg border border-[#cfc6bb] bg-white px-3 py-2 text-sm outline-none focus:border-[#276f5f]"
@@ -81,7 +97,7 @@ export function RecipeForm({
         <textarea
           id="steps"
           name="steps"
-          defaultValue={mode === "review" ? sampleSteps : ""}
+          defaultValue={stepText}
           placeholder={sampleSteps}
           rows={6}
           className="resize-none rounded-lg border border-[#cfc6bb] bg-white px-3 py-2 text-sm outline-none focus:border-[#276f5f]"
