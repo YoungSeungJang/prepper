@@ -1,15 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { MockRecipe } from "@/lib/mock-data";
+import type { RecipeListItem } from "@/lib/recipes/types";
 
-const priceTone: Record<MockRecipe["priceHint"]["band"], string> = {
+const priceTone: Record<RecipeListItem["priceHint"]["band"], string> = {
   cheap: "bg-[#dcefe6] text-[#1f5b4f]",
   normal: "bg-[#e8ecf2] text-[#34405d]",
   expensive: "bg-[#f4dddd] text-[#7a2f2f]",
   unknown: "bg-[#ece6dd] text-[#62564d]",
 };
 
-export function RecipeCard({ recipe }: { recipe: MockRecipe }) {
+export function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
   return (
     <Link
       href={`/recipes/${recipe.id}`}

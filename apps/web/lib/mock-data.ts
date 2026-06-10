@@ -3,7 +3,11 @@ export type MockIngredient = {
   importance: "primary" | "secondary" | "seasoning";
 };
 
-export type MockRecipe = {
+import type { RecipeListItem } from "./recipes/types";
+
+export type MockRecipe = RecipeListItem;
+
+type MockRecipeDefinition = {
   id: string;
   title: string;
   sourceUrl: string;
@@ -23,7 +27,7 @@ export type MockRecipe = {
   warnings?: string[];
 };
 
-export const mockRecipes: MockRecipe[] = [
+export const mockRecipes: MockRecipeDefinition[] = [
   {
     id: "jeyuk",
     title: "제육볶음",

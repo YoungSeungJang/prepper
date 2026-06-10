@@ -47,6 +47,7 @@
 | UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
 | Task 5. Supabase Auth 연결 | 구현 완료 / 실제 이메일 검증 필요 | Supabase browser/server client, Magic Link 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
+| Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
 
 완료된 검증:
 
@@ -58,6 +59,7 @@
 - `pnpm --filter web lint`: 통과
 - `pnpm --filter web typecheck`: 통과
 - `pnpm --filter web test`: 통과
+- 수동 레시피 CRUD 유틸 테스트: 통과
 - URL 검증 유틸 테스트: 통과
 - 비로그인 `/recipes` 접근: `/login?next=/recipes` 리다이렉트 확인
 - Playwright 화면 캡처: 홈, 저장함, 상세 화면을 모바일/데스크톱에서 확인
@@ -177,7 +179,7 @@ packages/shared/tests/
 | 4 | 구현 완료 / 검증 보류 | Supabase schema/RLS 작성 | migration SQL | `supabase db reset`은 Docker/Supabase CLI 설치 후 필요 |
 | 5 | 구현 완료 / 실제 이메일 검증 필요 | Auth 연결 | Magic Link 로그인 | 로그인 링크 발송/콜백, 보호 라우팅 |
 | 6 | 구현 완료 / 로그인 세션 수동 확인 필요 | URL 검증 로직 | `/recipes/new` submit action | Vitest 통과, 로그인 후 폼 수동 확인 필요 |
-| 7 | 대기 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
+| 7 | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
 | 8 | 대기 | import/review 흐름 | mock import Edge Function | 링크 -> 검토 -> 저장 |
 | 9 | 대기 | mock price hint | 가격 힌트 섹션 | 가격 실패가 저장을 막지 않음 |
 | 10 | 대기 | 추천 홈 | 추천 카드/empty state | 저장 레시피 추천 표시 |

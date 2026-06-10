@@ -3,12 +3,16 @@ import { AppShell } from "@/components/app-shell";
 import { RecommendationList } from "@/components/recommendation-list";
 import { StatusPanel } from "@/components/status-panel";
 import { TodayRecommendation } from "@/components/today-recommendation";
+import { getCurrentUser } from "@/lib/auth";
 import { mockRecipes } from "@/lib/mock-data";
+import { listRecipes } from "@/lib/recipes/queries";
 
-export default function Home() {
-  const recommendedRecipes = mockRecipes.filter((recipe) => recipe.status === "saved");
+export default async function Home() {
+  const user = await getCurrentUser();
+  const recipes = user ? await listRecipes() : mockRecipes;
+  const recommendedRecipes = recipes.filter((recipe) => recipe.status === "saved");
   const todayRecipe = recommendedRecipes[0];
-  const needsReviewCount = mockRecipes.filter((recipe) => recipe.status === "needs_review").length;
+  const needsReviewCount = recipes.filter((recipe) => recipe.status === "needs_review").length;
 
   return (
     <AppShell>
@@ -40,7 +44,7 @@ export default function Home() {
             모두 보기
           </Link>
         </div>
-        <RecommendationList recipes={mockRecipes} />
+        <RecommendationList recipes={recipes} />
       </section>
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2">

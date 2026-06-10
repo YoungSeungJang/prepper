@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { MockRecipe } from "@/lib/mock-data";
+import type { RecipeListItem } from "@/lib/recipes/types";
 
-export function TodayRecommendation({ recipe }: { recipe: MockRecipe }) {
+export function TodayRecommendation({ recipe }: { recipe: RecipeListItem }) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#d8d0c6] bg-[#fffdfa] shadow-[0_18px_40px_rgba(34,29,24,0.08)]">
       <div className="grid sm:grid-cols-[minmax(0,1fr)_340px]">

@@ -6,11 +6,13 @@ export function RecipeForm({
   error,
   mode,
   sourceUrl,
+  sourceType = "web",
 }: {
   action?: (formData: FormData) => void | Promise<void>;
   error?: string;
   mode: "new" | "review";
   sourceUrl?: string;
+  sourceType?: "youtube" | "web";
 }) {
   return (
     <form
@@ -22,6 +24,7 @@ export function RecipeForm({
           {error}
         </p>
       ) : null}
+      <input name="sourceType" type="hidden" value={sourceType} />
       <div className="grid gap-2">
         <label className="text-sm font-bold text-[#1f2420]" htmlFor="source-url">
           원본 링크
@@ -43,6 +46,18 @@ export function RecipeForm({
           name="title"
           defaultValue={mode === "review" ? "제육볶음" : ""}
           placeholder="레시피 제목"
+          className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
+        />
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-bold text-[#1f2420]" htmlFor="servings">
+          인분
+        </label>
+        <input
+          id="servings"
+          name="servings"
+          defaultValue={mode === "review" ? "1-2인분" : ""}
+          placeholder="2인분"
           className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
         />
       </div>

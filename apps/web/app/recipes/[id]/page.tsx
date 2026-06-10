@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { StatusPanel } from "@/components/status-panel";
 import { requireUser } from "@/lib/auth";
 import { getRecipeById } from "@/lib/mock-data";
+import { getRecipe } from "@/lib/recipes/queries";
 
 export default async function RecipeDetailPage({
   params,
@@ -14,7 +15,7 @@ export default async function RecipeDetailPage({
   const { id } = await params;
   await requireUser(`/recipes/${id}`);
 
-  const recipe = getRecipeById(id);
+  const recipe = (await getRecipe(id)) ?? getRecipeById(id);
 
   if (!recipe) {
     notFound();

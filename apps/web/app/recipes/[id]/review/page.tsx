@@ -5,6 +5,7 @@ import { RecipeForm } from "@/components/recipe-form";
 import { StatusPanel } from "@/components/status-panel";
 import { requireUser } from "@/lib/auth";
 import { getRecipeById } from "@/lib/mock-data";
+import { saveRecipeAction } from "../../actions";
 
 export default async function ReviewRecipePage({
   params,
@@ -18,6 +19,8 @@ export default async function ReviewRecipePage({
 
   const query = await searchParams;
   const sourceUrl = typeof query.sourceUrl === "string" ? query.sourceUrl : undefined;
+  const sourceType = query.sourceType === "youtube" ? "youtube" : "web";
+  const error = typeof query.error === "string" ? query.error : "";
   const recipe = getRecipeById(id);
 
   if (!recipe) {
@@ -31,7 +34,13 @@ export default async function ReviewRecipePage({
         description="원문에서 가져온 내용을 요리하기 편하게 다듬습니다."
       />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <RecipeForm mode="review" sourceUrl={sourceUrl} />
+        <RecipeForm
+          action={saveRecipeAction}
+          error={error}
+          mode="review"
+          sourceType={sourceType}
+          sourceUrl={sourceUrl}
+        />
         <div className="grid content-start gap-4">
           <StatusPanel title="분석 상태">
             재료와 순서가 일부 틀릴 수 있어요. 저장 전에 한 번만 확인해 주세요.
