@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRecipeHtmlDraft } from "./import-draft";
+import { buildImportQualityWarnings, parseRecipeHtmlDraft } from "./import-draft";
 
 describe("parseRecipeHtmlDraft", () => {
   it("extracts JSON-LD Recipe fields", () => {
@@ -32,16 +32,20 @@ describe("parseRecipeHtmlDraft", () => {
   });
 
   it("falls back to the page title", () => {
-    expect(
-      parseRecipeHtmlDraft(
-        "<html><head><title>간장 파스타 - Example</title></head></html>",
-        "https://example.com/recipe",
-      ),
-    ).toMatchObject({
+    const draft = parseRecipeHtmlDraft(
+      "<html><head><title>간장 파스타 - Example</title></head></html>",
+      "https://example.com/recipe",
+    );
+
+    expect(draft).toMatchObject({
       title: "간장 파스타 - Example",
       ingredients: [],
       steps: [],
     });
+    expect(buildImportQualityWarnings(draft, "web")).toEqual([
+      "재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
+      "조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
+    ]);
   });
 
   it("extracts instructions from HowToSection item lists", () => {
@@ -91,5 +95,21 @@ describe("parseRecipeHtmlDraft", () => {
       ingredients: ["감자 2개", "간장 2큰술"],
       steps: ["감자를 썬다.", "양념과 함께 조린다."],
     });
+  });
+
+  it("warns when YouTube import only has metadata", () => {
+    expect(
+      buildImportQualityWarnings(
+        {
+          ingredients: [],
+          steps: [],
+        },
+        "youtube",
+      ),
+    ).toEqual([
+      "유튜브는 현재 제목만 가져왔어요. 재료와 조리 순서를 직접 확인해 주세요.",
+      "재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
+      "조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
+    ]);
   });
 });

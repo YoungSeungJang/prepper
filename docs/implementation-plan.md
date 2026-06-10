@@ -50,6 +50,7 @@
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
 | Task 8-1. DB 기반 import/review 초안 | 구현 완료 / Supabase 수동 확인 필요 | URL 입력 시 `needs_review` 초안 생성, review 화면 DB 초안 조회, 저장 시 기존 초안 `saved` 업데이트 |
 | Task 8-2. 기본 파싱 연결 | 구현 완료 / 실 URL 품질 확인 필요 | 웹 JSON-LD Recipe 파싱, HowToSection/한국어 섹션 fallback, HTML title fallback, YouTube oEmbed title |
+| Task 8-3. 파싱 실패/품질 처리 | 구현 완료 / 실 URL 품질 확인 필요 | 제목만 가져온 초안, 유튜브 제목-only 초안, fetch 실패 fallback에 review 경고 표시 |
 
 완료된 검증:
 
@@ -62,6 +63,7 @@
 - `pnpm --filter web typecheck`: 통과
 - `pnpm --filter web test`: 통과
 - 기본 import 파싱 유틸 테스트: 통과. JSON-LD Recipe, HowToSection, 한국어 재료/조리순서 섹션 fallback 포함
+- import 품질 경고 유틸 테스트: 통과. 제목-only, YouTube metadata-only 초안 경고 포함
 - 수동 레시피 CRUD 유틸 테스트: 통과
 - URL 검증 유틸 테스트: 통과
 - 비로그인 `/recipes` 접근: `/login?next=/recipes` 리다이렉트 확인
@@ -183,7 +185,7 @@ packages/shared/tests/
 | 5 | 구현 완료 / 실제 이메일 검증 필요 | Auth 연결 | Magic Link 로그인 | 로그인 링크 발송/콜백, 보호 라우팅 |
 | 6 | 구현 완료 / 로그인 세션 수동 확인 필요 | URL 검증 로직 | `/recipes/new` submit action | Vitest 통과, 로그인 후 폼 수동 확인 필요 |
 | 7 | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
-| 8 | 부분 완료 | import/review 흐름 | DB 기반 review 초안 + 기본 파싱 보강 | YouTube 본문 추출과 LLM 파싱은 후속 |
+| 8 | 구현 완료 / 실 URL 품질 확인 필요 | import/review 흐름 | DB 기반 review 초안 + 기본 파싱 + 품질 경고 | YouTube 본문 추출과 LLM 파싱은 후속 |
 | 9 | 대기 | mock price hint | 가격 힌트 섹션 | 가격 실패가 저장을 막지 않음 |
 | 10 | 대기 | 추천 홈 | 추천 카드/empty state | 저장 레시피 추천 표시 |
 | 11 | 대기 | E2E 테스트 | Playwright 테스트 | 핵심 흐름 통과 |
@@ -643,6 +645,7 @@ pnpm --filter web build
 - import 실패가 전체 앱을 깨뜨리지 않는다.
 - double submit을 막는다.
 - 구조화 데이터가 일부 다른 웹 페이지도 제목만 저장되지 않고 재료/순서 후보를 채운다.
+- 제목만 가져온 초안은 review 화면에서 재료/조리순서 확인 경고를 보여준다.
 
 ### Task 9. Mock 가격 힌트 구현
 

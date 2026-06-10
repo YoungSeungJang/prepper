@@ -31,6 +31,8 @@ export async function startRecipeImportAction(formData: FormData) {
       sourceType: result.sourceType,
       sourceVideoId: result.youtubeVideoId,
       userId: user.id,
+      parseConfidence: draft.parseConfidence,
+      parseWarnings: draft.parseWarnings,
     });
   } catch (error) {
     console.error("Failed to create review draft", error);

@@ -47,7 +47,7 @@ export default async function ReviewRecipePage({
         />
         <div className="grid content-start gap-4">
           <StatusPanel title="분석 상태">
-            재료와 순서가 일부 틀릴 수 있어요. 저장 전에 한 번만 확인해 주세요.
+            자동으로 채운 초안이에요. 저장 전에 제목, 재료, 조리 순서를 확인해 주세요.
           </StatusPanel>
           {recipe.warnings?.length ? (
             <StatusPanel title="확인 필요">

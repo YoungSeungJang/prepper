@@ -12,6 +12,8 @@ type ImportDraftInput = {
   sourceUrl: string;
 };
 
+export type ImportedRecipeDraft = Awaited<ReturnType<typeof buildImportedRecipeDraft>>;
+
 const fallbackIngredients = ["재료를 확인해 주세요"];
 const fallbackSteps = ["원문을 보고 조리 순서를 확인해 주세요."];
 
@@ -188,6 +190,41 @@ export function parseRecipeHtmlDraft(html: string, sourceUrl: string): ImportedD
   };
 }
 
+export function buildImportQualityWarnings(
+  imported: Pick<ImportedDraft, "ingredients" | "steps">,
+  sourceType: SourceType,
+) {
+  const warnings: string[] = [];
+
+  if (sourceType === "youtube") {
+    warnings.push(
+      "유튜브는 현재 제목만 가져왔어요. 재료와 조리 순서를 직접 확인해 주세요.",
+    );
+  }
+
+  if (imported.ingredients.length === 0) {
+    warnings.push("재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.");
+  }
+
+  if (imported.steps.length === 0) {
+    warnings.push("조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.");
+  }
+
+  return warnings;
+}
+
+function getImportConfidence(warnings: string[]) {
+  if (warnings.length === 0) {
+    return 0.8;
+  }
+
+  if (warnings.length === 1) {
+    return 0.5;
+  }
+
+  return 0.2;
+}
+
 function getImportance(index: number): IngredientImportance {
   if (index === 0) {
     return "primary";
@@ -232,6 +269,7 @@ async function fetchYoutubeTitle(sourceUrl: string) {
 
 export async function buildImportedRecipeDraft(input: ImportDraftInput) {
   let imported: ImportedDraft;
+  let importFailed = false;
 
   try {
     if (input.sourceType === "youtube") {
@@ -245,11 +283,17 @@ export async function buildImportedRecipeDraft(input: ImportDraftInput) {
     }
   } catch (error) {
     console.error("Failed to import recipe draft", error);
+    importFailed = true;
     imported = {
       title: input.sourceType === "youtube" ? "유튜브 레시피" : "웹 레시피",
       ingredients: [],
       steps: [],
     };
+  }
+
+  const warnings = buildImportQualityWarnings(imported, input.sourceType);
+  if (importFailed) {
+    warnings.unshift("링크 내용을 가져오지 못했어요. 제목, 재료, 조리 순서를 직접 확인해 주세요.");
   }
 
   const ingredients = (imported.ingredients.length > 0
@@ -273,5 +317,7 @@ export async function buildImportedRecipeDraft(input: ImportDraftInput) {
     servings: imported.servings,
     ingredients,
     steps,
+    parseConfidence: getImportConfidence(warnings),
+    parseWarnings: warnings,
   };
 }

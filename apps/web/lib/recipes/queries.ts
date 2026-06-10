@@ -21,9 +21,23 @@ type RecipeRow = {
     position: number;
     body: string;
   }>;
+  parsed_sources?: Array<{
+    confidence: number | null;
+    warnings: unknown;
+  }>;
 };
 
+function parseWarnings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.length > 0)
+    : [];
+}
+
 function toListItem(row: RecipeRow): RecipeListItem {
+  const warnings = (row.parsed_sources ?? []).flatMap((source) =>
+    parseWarnings(source.warnings),
+  );
+
   return {
     id: row.id,
     title: row.title,
@@ -46,6 +60,7 @@ function toListItem(row: RecipeRow): RecipeListItem {
     steps: row.recipe_steps
       .sort((left, right) => left.position - right.position)
       .map((step) => step.body),
+    warnings,
   };
 }
 
@@ -64,7 +79,7 @@ async function listRecipesByStatus(status: RecipeStatus): Promise<RecipeListItem
   const { data, error } = await supabase
     .from("recipes")
     .select(
-      "id,title,source_url,source_type,source_video_id,thumbnail_url,servings,status,created_at,ingredients(raw_text,importance),recipe_steps(position,body)",
+      "id,title,source_url,source_type,source_video_id,thumbnail_url,servings,status,created_at,ingredients(raw_text,importance),recipe_steps(position,body),parsed_sources(confidence,warnings)",
     )
     .eq("status", status)
     .order("created_at", { ascending: false });
@@ -97,7 +112,7 @@ export async function getRecipe(id: string): Promise<RecipeListItem | null> {
   const { data, error } = await supabase
     .from("recipes")
     .select(
-      "id,title,source_url,source_type,source_video_id,thumbnail_url,servings,status,created_at,ingredients(raw_text,importance),recipe_steps(position,body)",
+      "id,title,source_url,source_type,source_video_id,thumbnail_url,servings,status,created_at,ingredients(raw_text,importance),recipe_steps(position,body),parsed_sources(confidence,warnings)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -172,6 +187,8 @@ export async function createReviewDraft(input: {
   sourceType: SourceType;
   sourceVideoId?: string;
   userId: string;
+  parseConfidence?: number;
+  parseWarnings?: string[];
 }) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -222,6 +239,20 @@ export async function createReviewDraft(input: {
 
     if (stepsError) {
       throw stepsError;
+    }
+  }
+
+  if (input.parseWarnings !== undefined || input.parseConfidence !== undefined) {
+    const { error: parsedSourceError } = await supabase.from("parsed_sources").insert({
+      recipe_id: recipeId,
+      parser_type:
+        input.sourceType === "youtube" ? "youtube_description" : "webpage_llm",
+      confidence: input.parseConfidence ?? null,
+      warnings: input.parseWarnings ?? [],
+    });
+
+    if (parsedSourceError) {
+      console.error("Failed to save parse warnings", parsedSourceError);
     }
   }
 
