@@ -5,14 +5,16 @@ import { StatusPanel } from "@/components/status-panel";
 import { TodayRecommendation } from "@/components/today-recommendation";
 import { getCurrentUser } from "@/lib/auth";
 import { mockRecipes } from "@/lib/mock-data";
-import { listRecipes } from "@/lib/recipes/queries";
+import { countReviewDrafts, listSavedRecipes } from "@/lib/recipes/queries";
 
 export default async function Home() {
   const user = await getCurrentUser();
-  const recipes = user ? await listRecipes() : mockRecipes;
+  const recipes = user ? await listSavedRecipes() : mockRecipes;
   const recommendedRecipes = recipes.filter((recipe) => recipe.status === "saved");
   const todayRecipe = recommendedRecipes[0];
-  const needsReviewCount = recipes.filter((recipe) => recipe.status === "needs_review").length;
+  const needsReviewCount = user
+    ? await countReviewDrafts()
+    : mockRecipes.filter((recipe) => recipe.status === "needs_review").length;
 
   return (
     <AppShell>

@@ -49,7 +49,7 @@ function toListItem(row: RecipeRow): RecipeListItem {
   };
 }
 
-export async function listRecipes(): Promise<RecipeListItem[]> {
+async function listRecipes(): Promise<RecipeListItem[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
@@ -64,6 +64,49 @@ export async function listRecipes(): Promise<RecipeListItem[]> {
   }
 
   return ((data ?? []) as RecipeRow[]).map(toListItem);
+}
+
+export async function listSavedRecipes(): Promise<RecipeListItem[]> {
+  const recipes = await listRecipesByStatus("saved");
+  return recipes;
+}
+
+export async function listReviewDrafts(): Promise<RecipeListItem[]> {
+  const recipes = await listRecipesByStatus("needs_review");
+  return recipes;
+}
+
+async function listRecipesByStatus(status: RecipeStatus): Promise<RecipeListItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipes")
+    .select(
+      "id,title,source_url,source_type,source_video_id,thumbnail_url,servings,status,created_at,ingredients(raw_text,importance),recipe_steps(position,body)",
+    )
+    .eq("status", status)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to list recipes by status", error);
+    return [];
+  }
+
+  return ((data ?? []) as RecipeRow[]).map(toListItem);
+}
+
+export async function countReviewDrafts() {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("recipes")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "needs_review");
+
+  if (error) {
+    console.error("Failed to count review drafts", error);
+    return 0;
+  }
+
+  return count ?? 0;
 }
 
 export async function getRecipe(id: string): Promise<RecipeListItem | null> {

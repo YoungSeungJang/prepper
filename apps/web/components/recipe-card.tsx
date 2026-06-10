@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getRecipeHref } from "@/lib/recipe-status";
 import type { RecipeListItem } from "@/lib/recipes/types";
 
 const priceTone: Record<RecipeListItem["priceHint"]["band"], string> = {
@@ -12,7 +13,7 @@ const priceTone: Record<RecipeListItem["priceHint"]["band"], string> = {
 export function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
   return (
     <Link
-      href={`/recipes/${recipe.id}`}
+      href={getRecipeHref(recipe)}
       className="group grid grid-cols-[92px_minmax(0,1fr)] overflow-hidden rounded-lg border border-[#d8d0c6] bg-[#fffdfa] transition hover:border-[#b8aa9b] hover:bg-white sm:grid-cols-[132px_minmax(0,1fr)]"
     >
       <Image

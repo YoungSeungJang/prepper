@@ -4,11 +4,11 @@ import { PageHeading } from "@/components/page-heading";
 import { RecipeCard } from "@/components/recipe-card";
 import { RecipeSearch } from "@/components/recipe-search";
 import { requireUser } from "@/lib/auth";
-import { listRecipes } from "@/lib/recipes/queries";
+import { listSavedRecipes } from "@/lib/recipes/queries";
 
 export default async function RecipesPage() {
   await requireUser("/recipes");
-  const recipes = await listRecipes();
+  const recipes = await listSavedRecipes();
 
   return (
     <AppShell>
