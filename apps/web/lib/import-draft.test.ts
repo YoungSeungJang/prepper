@@ -207,4 +207,64 @@ describe("parseRecipeHtmlDraft", () => {
       process.env.YOUTUBE_API_KEY = originalApiKey;
     }
   });
+
+  it("still checks YouTube transcript when the description only says recipe", async () => {
+    const originalFetch = globalThis.fetch;
+    const originalApiKey = process.env.YOUTUBE_API_KEY;
+    process.env.YOUTUBE_API_KEY = "youtube-key";
+
+    globalThis.fetch = async (input) => {
+      const url = input.toString();
+
+      if (url.startsWith("https://www.googleapis.com/youtube/v3/videos")) {
+        return Response.json({
+          items: [
+            {
+              snippet: {
+                title: "오이무침",
+                channelTitle: "요리채널",
+                description: "초간단 오이무침 레시피",
+              },
+            },
+          ],
+        });
+      }
+
+      if (url.startsWith("https://www.youtube.com/watch")) {
+        return new Response(`
+          <script>
+            var ytInitialPlayerResponse = {
+              "captions": {
+                "playerCaptionsTracklistRenderer": {
+                  "captionTracks": [
+                    { "baseUrl": "https://example.com/cucumber-caption.xml", "languageCode": "ko" }
+                  ]
+                }
+              }
+            };
+          </script>
+        `);
+      }
+
+      if (url === "https://example.com/cucumber-caption.xml") {
+        return new Response(`
+          <transcript>
+            <text>오이는 얇게 썰고 고춧가루와 식초를 넣어 무쳐주세요</text>
+          </transcript>
+        `);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    };
+
+    try {
+      const text = await fetchYoutubeSourceText("https://www.youtube.com/shorts/abc123");
+
+      expect(text).toContain("자막:");
+      expect(text).toContain("오이는 얇게 썰고 고춧가루와 식초를 넣어 무쳐주세요");
+    } finally {
+      globalThis.fetch = originalFetch;
+      process.env.YOUTUBE_API_KEY = originalApiKey;
+    }
+  });
 });

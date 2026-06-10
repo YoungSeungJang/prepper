@@ -53,7 +53,7 @@
 | Task 8-3. 파싱 실패/품질 처리 | 구현 완료 / 실 URL 품질 확인 필요 | 제목만 가져온 초안, 유튜브 제목-only 초안, fetch 실패 fallback에 review 경고 표시 |
 | Task 8-4. 실제 파서 1차 연결 | 구현 완료 / API 키 입력 후 실 URL 확인 필요 | YouTube API description 수집, 일반 웹 본문 추출, OpenAI Structured Outputs 기반 LLM 파싱 |
 | Task 8-4 버그픽스. YouTube Shorts URL 파싱 | 완료 | `packages/shared/src/recipes/validation.ts`의 `getYoutubeVideoId`가 `/shorts/VIDEO_ID` 경로를 처리하지 못해 `sourceType = "web"`으로 잘못 분류되던 문제 수정. Shorts도 YouTube API description 수집 경로로 올바르게 처리됨. 테스트 1개 추가 |
-| Task 8-5. YouTube transcript fallback | 완료 / 실 URL 품질 확인 필요 | YouTube description에 레시피 단서가 부족하면 watch page의 공개 caption track에서 transcript를 가져와 LLM parser 입력에 추가. transcript가 없거나 실패하면 review warning 유지 |
+| Task 8-5. YouTube transcript fallback | 완료 / 실 URL 품질 확인 필요 | YouTube description에 재료/조리순서 같은 강한 단서가 부족하면 watch page의 공개 caption track에서 transcript를 가져와 LLM parser 입력에 추가. transcript가 없거나 실패하면 review warning 유지 |
 
 완료된 검증:
 
@@ -68,7 +68,7 @@
 - 기본 import 파싱 유틸 테스트: 통과. JSON-LD Recipe, HowToSection, 한국어 재료/조리순서 섹션 fallback 포함
 - import 품질 경고 유틸 테스트: 통과. 제목-only, YouTube 설명/자막 부족 초안 경고 포함
 - LLM 입력용 웹 본문 추출 유틸 테스트: 통과
-- YouTube transcript fallback 테스트: 통과. description이 부족한 Shorts 입력에서 caption text를 LLM 입력에 추가
+- YouTube transcript fallback 테스트: 통과. description이 부족하거나 `레시피` 단어만 있는 Shorts 입력에서 caption text를 LLM 입력에 추가
 - 수동 레시피 CRUD 유틸 테스트: 통과
 - URL 검증 유틸 테스트: 통과. YouTube watch, youtu.be, Shorts URL 포함
 - 비로그인 `/recipes` 접근: `/login?next=/recipes` 리다이렉트 확인

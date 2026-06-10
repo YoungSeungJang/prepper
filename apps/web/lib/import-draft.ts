@@ -329,7 +329,7 @@ function getYoutubeVideoId(sourceUrl: string) {
 }
 
 function hasLikelyRecipeDetails(text: string) {
-  return /재료|만드는\s*법|만들기|조리|레시피|ingredients?|instructions?|directions?/i.test(
+  return /재료|조리\s*순서|만드는\s*법|ingredients?|instructions?|directions?/i.test(
     text,
   );
 }
