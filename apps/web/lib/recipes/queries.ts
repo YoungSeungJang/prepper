@@ -261,22 +261,6 @@ export async function createReviewDraft(input: {
 
 export async function updateRecipeFromDraft(recipeId: string, draft: RecipeDraftInput) {
   const supabase = await createClient();
-  const { error: recipeError } = await supabase
-    .from("recipes")
-    .update({
-      title: draft.title,
-      source_url: draft.sourceUrl,
-      source_type: draft.sourceType,
-      thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
-      servings: draft.servings ?? "1인분",
-      status: "saved",
-    })
-    .eq("id", recipeId);
-
-  if (recipeError) {
-    throw recipeError;
-  }
-
   const { error: ingredientsDeleteError } = await supabase
     .from("ingredients")
     .delete()
@@ -324,6 +308,22 @@ export async function updateRecipeFromDraft(recipeId: string, draft: RecipeDraft
     if (error) {
       throw error;
     }
+  }
+
+  const { error: recipeUpdateError } = await supabase
+    .from("recipes")
+    .update({
+      title: draft.title,
+      source_url: draft.sourceUrl,
+      source_type: draft.sourceType,
+      thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+      servings: draft.servings ?? "1인분",
+      status: "saved",
+    })
+    .eq("id", recipeId);
+
+  if (recipeUpdateError) {
+    throw recipeUpdateError;
   }
 }
 

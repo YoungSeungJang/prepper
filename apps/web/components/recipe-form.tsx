@@ -24,10 +24,8 @@ export function RecipeForm({
   title?: string;
   ingredients?: Array<{ rawText: string }>;
 }) {
-  const ingredientText =
-    ingredients?.map((ingredient) => ingredient.rawText).join("\n") ??
-    (mode === "review" ? sampleIngredients : "");
-  const stepText = steps?.join("\n") ?? (mode === "review" ? sampleSteps : "");
+  const ingredientText = ingredients?.map((ingredient) => ingredient.rawText).join("\n") ?? "";
+  const stepText = steps?.join("\n") ?? "";
 
   return (
     <form
@@ -48,7 +46,7 @@ export function RecipeForm({
         <input
           id="source-url"
           name="sourceUrl"
-          defaultValue={sourceUrl ?? (mode === "review" ? "https://www.youtube.com/watch?v=example-jeyuk" : "")}
+          defaultValue={sourceUrl ?? ""}
           placeholder="https://..."
           className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
         />
@@ -60,7 +58,7 @@ export function RecipeForm({
         <input
           id="title"
           name="title"
-          defaultValue={title ?? (mode === "review" ? "제육볶음" : "")}
+          defaultValue={title ?? ""}
           placeholder="레시피 제목"
           className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
         />
@@ -72,7 +70,7 @@ export function RecipeForm({
         <input
           id="servings"
           name="servings"
-          defaultValue={servings ?? (mode === "review" ? "1-2인분" : "")}
+          defaultValue={servings ?? ""}
           placeholder="2인분"
           className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
         />

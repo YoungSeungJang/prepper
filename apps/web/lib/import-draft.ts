@@ -18,7 +18,7 @@ export type ImportedRecipeDraft = Awaited<ReturnType<typeof buildImportedRecipeD
 
 const fallbackIngredients = ["재료를 확인해 주세요"];
 const fallbackSteps = ["원문을 보고 조리 순서를 확인해 주세요."];
-const openAiModel = process.env.OPENAI_MODEL || "gpt-5.5";
+const openAiModel = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const maxParserInputLength = 12000;
 
 function stripTags(value: string) {
@@ -335,25 +335,65 @@ function hasLikelyRecipeDetails(text: string) {
 }
 
 function extractYoutubePlayerResponse(html: string) {
-  const json = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/)?.[1];
-  if (!json) {
+  const marker = "ytInitialPlayerResponse";
+  const markerIndex = html.indexOf(marker);
+  if (markerIndex < 0) {
     return null;
   }
 
-  try {
-    return JSON.parse(json) as {
-      captions?: {
-        playerCaptionsTracklistRenderer?: {
-          captionTracks?: Array<{
-            baseUrl?: string;
-            languageCode?: string;
-          }>;
-        };
-      };
-    };
-  } catch {
+  const objectStart = html.indexOf("{", markerIndex);
+  if (objectStart < 0) {
     return null;
   }
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = objectStart; index < html.length; index += 1) {
+    const char = html[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        const json = html.slice(objectStart, index + 1);
+        try {
+          return JSON.parse(json) as {
+            captions?: {
+              playerCaptionsTracklistRenderer?: {
+                captionTracks?: Array<{
+                  baseUrl?: string;
+                  languageCode?: string;
+                }>;
+              };
+            };
+          };
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 function parseTranscriptText(rawText: string) {

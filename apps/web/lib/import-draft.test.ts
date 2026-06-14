@@ -267,4 +267,69 @@ describe("parseRecipeHtmlDraft", () => {
       process.env.YOUTUBE_API_KEY = originalApiKey;
     }
   });
+
+  it("extracts YouTube transcript from a nested player response object", async () => {
+    const originalFetch = globalThis.fetch;
+    const originalApiKey = process.env.YOUTUBE_API_KEY;
+    process.env.YOUTUBE_API_KEY = "youtube-key";
+
+    globalThis.fetch = async (input) => {
+      const url = input.toString();
+
+      if (url.startsWith("https://www.googleapis.com/youtube/v3/videos")) {
+        return Response.json({
+          items: [
+            {
+              snippet: {
+                title: "두부조림",
+                channelTitle: "요리채널",
+                description: "오늘의 쇼츠",
+              },
+            },
+          ],
+        });
+      }
+
+      if (url.startsWith("https://www.youtube.com/watch")) {
+        return new Response(`
+          <script>
+            var ytInitialPlayerResponse = {
+              "videoDetails": {
+                "title": "두부조림",
+                "thumbnail": { "thumbnails": [{ "url": "https://example.com/thumb.jpg" }] }
+              },
+              "captions": {
+                "playerCaptionsTracklistRenderer": {
+                  "captionTracks": [
+                    { "baseUrl": "https://example.com/tofu-caption.xml", "languageCode": "ko" }
+                  ]
+                }
+              }
+            };
+            var meta = {"after": true};
+          </script>
+        `);
+      }
+
+      if (url === "https://example.com/tofu-caption.xml") {
+        return new Response(`
+          <transcript>
+            <text>두부를 굽고 간장 양념을 넣어 졸여주세요</text>
+          </transcript>
+        `);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    };
+
+    try {
+      const text = await fetchYoutubeSourceText("https://www.youtube.com/shorts/tofu123");
+
+      expect(text).toContain("자막:");
+      expect(text).toContain("두부를 굽고 간장 양념을 넣어 졸여주세요");
+    } finally {
+      globalThis.fetch = originalFetch;
+      process.env.YOUTUBE_API_KEY = originalApiKey;
+    }
+  });
 });
