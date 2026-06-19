@@ -45,7 +45,7 @@
 | Task 4. Supabase DB schema와 RLS 작성 | 구현 완료 / DB 적용 검증 보류 | migration SQL, index, trigger, RLS policy 작성 완료. Docker/Supabase CLI 미설치로 `supabase db reset`은 미실행 |
 | 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
 | UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
-| UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. 비로그인 Home은 AppShell과 분리한 전용 랜딩/제품 프리뷰, 로그인 Home은 링크 입력 중심으로 분리 |
+| UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. 비로그인 Home은 AppShell과 분리한 전용 랜딩, 단일 레시피 파싱 예시, 스크롤 설명 섹션, fade-in 모션을 적용. 로그인 Home은 링크 입력 중심으로 분리 |
 | Task 5. Supabase Auth 연결 | 구현 완료 / 실제 이메일 검증 필요 | Supabase browser/server client, Magic Link 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |

@@ -30,8 +30,8 @@ export default async function Home() {
           </Link>
         </header>
 
-        <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 pb-16 pt-10 sm:px-8 sm:pt-16 lg:grid-cols-[minmax(0,0.86fr)_minmax(460px,1.14fr)] lg:items-center">
-          <div className="max-w-xl">
+        <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 pb-20 pt-10 sm:px-8 sm:pt-16 lg:grid-cols-[minmax(0,0.86fr)_minmax(460px,1.14fr)] lg:items-center">
+          <div className="prepper-fade-up max-w-xl">
             <p className="text-sm font-medium text-slate-500">Recipe link organizer</p>
             <h1 className="mt-4 text-5xl font-semibold leading-[1.04] tracking-tight text-slate-950 sm:text-6xl">
               레시피 링크를 요리용 노트로 바꿉니다.
@@ -59,57 +59,49 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="rounded-[18px] border border-slate-200 bg-white p-3 shadow-[0_30px_90px_rgba(15,23,42,0.10)]">
-            <div className="rounded-[14px] border border-slate-200 bg-slate-950 p-4 text-white">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div>
-                  <p className="text-xs font-medium text-slate-400">원본 링크</p>
-                  <p className="mt-1 text-sm text-slate-200">youtube.com/shorts/jeyuk-recipe</p>
-                </div>
-                <span className="rounded-md bg-white/10 px-2.5 py-1 text-xs text-slate-200">
-                  YouTube
-                </span>
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-[0.9fr_1.1fr]">
-                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
-                    Before
-                  </p>
-                  <div className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-                    <p>영상 설명, 댓글, 광고 문구가 섞여 있습니다.</p>
-                    <p>재료와 순서를 다시 찾으려면 원문을 계속 오가야 합니다.</p>
-                    <div className="rounded-md bg-white/[0.06] p-3 text-xs leading-5 text-slate-400">
-                      고정댓글 참고 / 재료는 영상 중간 / 자세한 계량은 설명란...
-                    </div>
+          <div className="prepper-fade-up-delay-1 rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_30px_90px_rgba(15,23,42,0.10)]">
+            <div className="rounded-[18px] border border-slate-200 bg-[#f8fafc] p-4">
+              <div className="rounded-xl bg-slate-950 p-4 text-white">
+                <p className="text-xs font-medium text-slate-400">붙여넣은 링크</p>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1 rounded-lg bg-white/[0.06] px-3 py-3 text-sm text-slate-200">
+                    youtube.com/shorts/jeyuk-recipe
+                  </div>
+                  <div className="flex h-10 items-center justify-center rounded-lg bg-white px-4 text-sm font-medium text-slate-950">
+                    초안 만들기
                   </div>
                 </div>
+              </div>
 
-                <div className="rounded-lg bg-white p-4 text-slate-950">
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
-                    After
-                  </p>
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                    제육볶음
-                  </h2>
-                  <p className="mt-1 text-xs font-medium text-slate-500">저장 전 확인 초안</p>
-                  <div className="mt-5 grid gap-4">
-                    <div>
-                      <p className="text-sm font-semibold">재료</p>
-                      <ul className="mt-2 grid gap-2 text-sm text-slate-700">
-                        <li className="rounded-md bg-slate-50 px-3 py-2">돼지고기 앞다리살 300g</li>
-                        <li className="rounded-md bg-slate-50 px-3 py-2">양파 1/2개</li>
-                        <li className="rounded-md bg-slate-50 px-3 py-2">고추장 1큰술</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">조리 순서</p>
-                      <ol className="mt-2 grid gap-2 text-sm leading-6 text-slate-700">
-                        <li>1. 재료를 먹기 좋은 크기로 썹니다.</li>
-                        <li>2. 양념을 섞고 고기에 버무립니다.</li>
-                        <li>3. 팬에서 충분히 볶아 마무리합니다.</li>
-                      </ol>
-                    </div>
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-slate-500">저장 전 확인 초안</p>
+                    <h2 className="mt-1 text-3xl font-semibold tracking-tight text-slate-950">
+                      제육볶음
+                    </h2>
+                  </div>
+                  <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                    확인 필요
+                  </span>
+                </div>
+
+                <div className="mt-5 grid gap-5 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">재료</p>
+                    <ul className="mt-2 grid gap-2 text-sm text-slate-700">
+                      <li className="rounded-md bg-slate-50 px-3 py-2">돼지고기 앞다리살 300g</li>
+                      <li className="rounded-md bg-slate-50 px-3 py-2">양파 1/2개</li>
+                      <li className="rounded-md bg-slate-50 px-3 py-2">고추장 1큰술</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">조리 순서</p>
+                    <ol className="mt-2 grid gap-2 text-sm leading-6 text-slate-700">
+                      <li>1. 재료를 먹기 좋은 크기로 썹니다.</li>
+                      <li>2. 양념을 섞고 고기에 버무립니다.</li>
+                      <li>3. 팬에서 충분히 볶아 마무리합니다.</li>
+                    </ol>
                   </div>
                 </div>
               </div>
@@ -117,7 +109,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="mx-auto grid w-full max-w-6xl gap-3 px-5 pb-16 sm:px-8 md:grid-cols-3">
+        <section className="prepper-fade-up-delay-2 mx-auto grid w-full max-w-6xl gap-3 px-5 pb-16 sm:px-8 md:grid-cols-3">
           <div className="border-t border-slate-200 pt-5">
             <p className="text-sm font-semibold text-slate-950">링크에서 추출</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -135,6 +127,54 @@ export default async function Home() {
             <p className="mt-2 text-sm leading-6 text-slate-600">
               이후 재료별 상품 후보와 상품별 가격 변동을 연결할 예정입니다.
             </p>
+          </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl px-5 pb-20 sm:px-8">
+          <div className="prepper-fade-up-delay-2 grid gap-8 border-t border-slate-200 pt-14 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Why Prepper</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+                저장한 레시피는 많은데, 다시 요리할 때마다 찾기 어렵습니다.
+              </h2>
+            </div>
+            <div className="grid gap-4 text-sm leading-7 text-slate-600 sm:grid-cols-2">
+              <p>
+                영상은 다시 돌려봐야 하고, 블로그는 광고와 긴 설명 사이에서 재료와 순서를
+                다시 찾아야 합니다.
+              </p>
+              <p>
+                Prepper는 원문을 대체하지 않습니다. 대신 요리할 때 필요한 핵심만 저장 전
+                확인 가능한 형태로 정리합니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8">
+          <div className="prepper-fade-up-delay-3 rounded-[20px] bg-slate-950 p-6 text-white sm:p-8">
+            <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+              <div>
+                <p className="text-sm font-medium text-slate-400">Next</p>
+                <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+                  다음에는 재료에서 상품 정보로 이어집니다.
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-slate-300">
+                  저장한 레시피의 재료를 누르면 관련 상품 후보와 상품별 가격 변동을 볼 수
+                  있는 방향으로 확장합니다.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {["양파", "돼지고기", "고추장"].map((name) => (
+                  <div key={name} className="rounded-xl bg-white/[0.06] p-4">
+                    <p className="text-sm font-medium">{name}</p>
+                    <p className="mt-2 text-xs leading-5 text-slate-400">
+                      상품 후보와 가격 변동을 연결할 재료
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </main>

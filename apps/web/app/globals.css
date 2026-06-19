@@ -31,3 +31,39 @@ body {
 ::selection {
   background: #dbeafe;
 }
+
+@keyframes prepperFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prepper-fade-up {
+  animation: prepperFadeUp 640ms ease-out both;
+}
+
+.prepper-fade-up-delay-1 {
+  animation: prepperFadeUp 640ms ease-out 120ms both;
+}
+
+.prepper-fade-up-delay-2 {
+  animation: prepperFadeUp 640ms ease-out 220ms both;
+}
+
+.prepper-fade-up-delay-3 {
+  animation: prepperFadeUp 640ms ease-out 320ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prepper-fade-up,
+  .prepper-fade-up-delay-1,
+  .prepper-fade-up-delay-2,
+  .prepper-fade-up-delay-3 {
+    animation: none;
+  }
+}
