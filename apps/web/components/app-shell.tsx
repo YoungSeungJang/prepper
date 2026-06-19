@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
 import { getCurrentUser } from "@/lib/auth";
@@ -10,9 +11,15 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-full bg-slate-50 text-slate-950">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="grid leading-tight">
-            <span className="text-lg font-semibold tracking-tight">Prepper</span>
-            <span className="text-[11px] font-medium text-slate-500">Recipe workspace</span>
+          <Link href="/" aria-label="Prepper 홈" className="inline-flex items-center">
+            <Image
+              src="/prepper_logo.png"
+              alt="Prepper"
+              width={1881}
+              height={836}
+              priority
+              className="h-7 w-auto"
+            />
           </Link>
           <div className="flex items-center gap-1">
             <AppNav />

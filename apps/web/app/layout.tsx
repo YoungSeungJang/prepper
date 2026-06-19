@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Prepper",
   description: "저장한 레시피를 실제로 해먹게 만드는 웹앱",
+  icons: {
+    icon: "/prepper_favicon.png",
+  },
 };
 
 export default function RootLayout({

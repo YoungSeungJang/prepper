@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { RecommendationList } from "@/components/recommendation-list";
@@ -19,12 +20,19 @@ export default async function Home() {
     return (
       <main className="min-h-screen bg-[#f6f4ef] text-slate-950">
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Prepper
+          <Link href="/" aria-label="Prepper 홈" className="inline-flex items-center">
+            <Image
+              src="/prepper_logo.png"
+              alt="Prepper"
+              width={1881}
+              height={836}
+              priority
+              className="h-8 w-auto"
+            />
           </Link>
           <Link
             href="/login"
-            className="inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+            className="text-sm font-medium text-slate-600 transition hover:text-slate-950"
           >
             로그인
           </Link>
