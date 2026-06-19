@@ -1,51 +1,51 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getRecipeHref } from "@/lib/recipe-status";
 import type { RecipeListItem } from "@/lib/recipes/types";
 
 const priceTone: Record<RecipeListItem["priceHint"]["band"], string> = {
-  cheap: "bg-[#dcefe6] text-[#1f5b4f]",
-  normal: "bg-[#e8ecf2] text-[#34405d]",
-  expensive: "bg-[#f4dddd] text-[#7a2f2f]",
-  unknown: "bg-[#ece6dd] text-[#62564d]",
+  cheap: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  normal: "bg-slate-100 text-slate-700 ring-slate-200",
+  expensive: "bg-rose-50 text-rose-700 ring-rose-200",
+  unknown: "bg-slate-100 text-slate-500 ring-slate-200",
 };
 
 export function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
+  const sourceLabel = recipe.sourceType === "youtube" ? "YouTube" : "Web";
+  const primaryIngredients = recipe.ingredients
+    .slice(0, 3)
+    .map((ingredient) => ingredient.rawText)
+    .join(" · ");
+
   return (
     <Link
       href={getRecipeHref(recipe)}
-      className="group grid grid-cols-[92px_minmax(0,1fr)] overflow-hidden rounded-lg border border-[#d8d0c6] bg-[#fffdfa] transition hover:border-[#b8aa9b] hover:bg-white sm:grid-cols-[132px_minmax(0,1fr)]"
+      className="group block rounded-lg border border-slate-200 bg-white px-4 py-4 transition hover:border-slate-300 hover:bg-slate-50"
     >
-      <Image
-        src={recipe.thumbnailUrl}
-        alt=""
-        width={640}
-        height={360}
-        className="h-full min-h-32 w-full object-cover"
-      />
-      <div className="grid min-w-0 content-between gap-3 p-4">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="mb-2 flex items-start justify-between gap-2">
-            <h2 className="min-w-0 truncate text-base font-bold text-[#1f2420] group-hover:underline">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="truncate text-base font-semibold text-slate-950 group-hover:underline">
               {recipe.title}
             </h2>
             {recipe.status === "needs_review" ? (
-              <span className="shrink-0 rounded-full bg-[#fff0cf] px-2 py-1 text-[11px] font-bold text-[#805b18]">
-                확인
+              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200">
+                확인 필요
               </span>
             ) : null}
           </div>
-          <p className="text-xs font-semibold text-[#756b61]">
-            {recipe.servings} · {recipe.sourceType === "youtube" ? "YouTube" : "Web"}
+          <p className="mt-1 text-xs font-medium text-slate-500">
+            {sourceLabel} · {recipe.servings}
           </p>
         </div>
-        <p className="line-clamp-2 text-sm leading-6 text-[#4f4840]">{recipe.reason}</p>
         <span
-          className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${priceTone[recipe.priceHint.band]}`}
+          className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-medium ring-1 ${priceTone[recipe.priceHint.band]}`}
         >
           {recipe.priceHint.summary}
         </span>
       </div>
+      <p className="mt-3 line-clamp-1 text-sm text-slate-600">
+        {primaryIngredients || "재료 확인 필요"}
+      </p>
     </Link>
   );
 }

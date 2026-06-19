@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-06-11 (YouTube transcript fallback 추가)
+마지막 업데이트: 2026-06-19 (Home 중심 UI 리디자인)
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -45,6 +45,7 @@
 | Task 4. Supabase DB schema와 RLS 작성 | 구현 완료 / DB 적용 검증 보류 | migration SQL, index, trigger, RLS policy 작성 완료. Docker/Supabase CLI 미설치로 `supabase db reset`은 미실행 |
 | 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
 | UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
+| UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. Home은 링크 입력 중심, 저장함은 목록, 상세/검토는 문서형 작업 화면으로 정리 |
 | Task 5. Supabase Auth 연결 | 구현 완료 / 실제 이메일 검증 필요 | Supabase browser/server client, Magic Link 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
@@ -54,6 +55,7 @@
 | Task 8-4. 실제 파서 1차 연결 | 구현 완료 / API 키 입력 후 실 URL 확인 필요 | YouTube API description 수집, 일반 웹 본문 추출, OpenAI Structured Outputs 기반 LLM 파싱 |
 | Task 8-4 버그픽스. YouTube Shorts URL 파싱 | 완료 | `packages/shared/src/recipes/validation.ts`의 `getYoutubeVideoId`가 `/shorts/VIDEO_ID` 경로를 처리하지 못해 `sourceType = "web"`으로 잘못 분류되던 문제 수정. Shorts도 YouTube API description 수집 경로로 올바르게 처리됨. 테스트 1개 추가 |
 | Task 8-5. YouTube transcript fallback | 완료 / 실 URL 품질 확인 필요 | YouTube description에 재료/조리순서 같은 강한 단서가 부족하면 watch page의 공개 caption track에서 transcript를 가져와 LLM parser 입력에 추가. transcript가 없거나 실패하면 review warning 유지 |
+| Task 9. 재료별 상품 후보/가격 변동 | 대기 | 기존 mock 가격 힌트에서 방향 변경. 재료를 누르면 Coupang 상품 후보와 상품별 현재가/가격 변동을 보여주는 구조로 설계 예정 |
 
 완료된 검증:
 

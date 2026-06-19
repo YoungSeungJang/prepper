@@ -30,7 +30,7 @@ export default async function ReviewRecipePage({
     <AppShell>
       <PageHeading
         title="저장 전 확인"
-        description="원문에서 가져온 내용을 요리하기 편하게 다듬습니다."
+        description="자동으로 가져온 초안을 확인하고 필요한 부분만 수정합니다."
       />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <RecipeForm
@@ -47,7 +47,7 @@ export default async function ReviewRecipePage({
         />
         <div className="grid content-start gap-4">
           <StatusPanel title="분석 상태">
-            자동으로 채운 초안이에요. 저장 전에 제목, 재료, 조리 순서를 확인해 주세요.
+            저장하기 전 제목, 재료, 조리 순서가 원문과 맞는지 확인해 주세요.
           </StatusPanel>
           {recipe.warnings?.length ? (
             <StatusPanel title="확인 필요">

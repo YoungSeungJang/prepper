@@ -30,17 +30,17 @@ export function RecipeForm({
   return (
     <form
       action={action}
-      className="grid gap-5 rounded-xl border border-[#d8d0c6] bg-[#fffdfa] p-5 shadow-[0_12px_30px_rgba(34,29,24,0.06)]"
+      className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5"
     >
       {error ? (
-        <p className="rounded-lg bg-[#f4dddd] px-3 py-2 text-sm font-semibold text-[#7a2f2f]">
+        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
           {error}
         </p>
       ) : null}
       {recipeId ? <input name="recipeId" type="hidden" value={recipeId} /> : null}
       <input name="sourceType" type="hidden" value={sourceType} />
       <div className="grid gap-2">
-        <label className="text-sm font-bold text-[#1f2420]" htmlFor="source-url">
+        <label className="text-sm font-medium text-slate-700" htmlFor="source-url">
           원본 링크
         </label>
         <input
@@ -48,11 +48,11 @@ export function RecipeForm({
           name="sourceUrl"
           defaultValue={sourceUrl ?? ""}
           placeholder="https://..."
-          className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
+          className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-sm font-bold text-[#1f2420]" htmlFor="title">
+        <label className="text-sm font-medium text-slate-700" htmlFor="title">
           제목
         </label>
         <input
@@ -60,11 +60,11 @@ export function RecipeForm({
           name="title"
           defaultValue={title ?? ""}
           placeholder="레시피 제목"
-          className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
+          className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-sm font-bold text-[#1f2420]" htmlFor="servings">
+        <label className="text-sm font-medium text-slate-700" htmlFor="servings">
           인분
         </label>
         <input
@@ -72,11 +72,11 @@ export function RecipeForm({
           name="servings"
           defaultValue={servings ?? ""}
           placeholder="2인분"
-          className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
+          className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-sm font-bold text-[#1f2420]" htmlFor="ingredients">
+        <label className="text-sm font-medium text-slate-700" htmlFor="ingredients">
           재료
         </label>
         <textarea
@@ -85,11 +85,11 @@ export function RecipeForm({
           defaultValue={ingredientText}
           placeholder={sampleIngredients}
           rows={5}
-          className="resize-none rounded-lg border border-[#cfc6bb] bg-white px-3 py-2 text-sm outline-none focus:border-[#276f5f]"
+          className="resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-6 outline-none focus:border-slate-400"
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-sm font-bold text-[#1f2420]" htmlFor="steps">
+        <label className="text-sm font-medium text-slate-700" htmlFor="steps">
           조리 순서
         </label>
         <textarea
@@ -98,12 +98,12 @@ export function RecipeForm({
           defaultValue={stepText}
           placeholder={sampleSteps}
           rows={6}
-          className="resize-none rounded-lg border border-[#cfc6bb] bg-white px-3 py-2 text-sm outline-none focus:border-[#276f5f]"
+          className="resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-6 outline-none focus:border-slate-400"
         />
       </div>
       <button
         type="submit"
-        className="h-12 rounded-full bg-[#276f5f] px-4 text-sm font-bold text-white hover:bg-[#1f5b4f]"
+        className="h-11 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
       >
         {mode === "review" ? "저장하기" : "레시피 만들기"}
       </button>

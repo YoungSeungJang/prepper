@@ -26,27 +26,27 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md rounded-xl border border-[#d8d0c6] bg-[#fffdfa] p-6 shadow-[0_14px_34px_rgba(34,29,24,0.07)]">
+      <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white p-6">
         {user ? (
           <>
-            <p className="text-sm font-bold text-[#276f5f]">로그인됨</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#1f2420]">
+            <p className="text-sm font-medium text-slate-500">로그인됨</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
               저장함을 열 수 있습니다
             </h1>
-            <p className="mt-3 text-sm leading-6 text-[#625c54]">
+            <p className="mt-3 text-sm leading-6 text-slate-500">
               {user.email} 계정으로 로그인되어 있습니다.
             </p>
             <div className="mt-6 grid gap-3">
               <Link
                 href="/recipes"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-[#276f5f] px-4 text-sm font-bold text-white hover:bg-[#1f5b4f]"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
               >
                 저장함으로 이동
               </Link>
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="h-12 w-full rounded-full border border-[#d8d0c6] bg-white px-4 text-sm font-bold text-[#1f2420] hover:bg-[#f0ebe4]"
+                  className="h-11 w-full rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   로그아웃
                 </button>
@@ -55,19 +55,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </>
         ) : (
           <>
-            <p className="text-sm font-bold text-[#276f5f]">
+            <p className="text-sm font-medium text-slate-500">
               저장한 레시피를 다시 열려면
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#1f2420]">
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
               이메일 링크로 시작하기
             </h1>
             {error ? (
-              <p className="mt-4 rounded-lg bg-[#f4dddd] px-3 py-2 text-sm font-semibold text-[#7a2f2f]">
+              <p className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
                 {error}
               </p>
             ) : null}
             {sent ? (
-              <div className="mt-6 rounded-lg bg-[#dcefe6] px-4 py-3 text-sm font-semibold leading-6 text-[#1f5b4f]">
+              <div className="mt-6 rounded-md bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-700 ring-1 ring-slate-200">
                 {email} 주소로 로그인 링크를 보냈습니다. 메일의 링크를 클릭하면 저장함으로
                 이동합니다.
               </div>
@@ -75,7 +75,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <form action={requestEmailOtpAction} className="mt-6 grid gap-4">
                 <input name="next" type="hidden" value={next} />
                 <div className="grid gap-2">
-                  <label className="text-sm font-bold text-[#1f2420]" htmlFor="email">
+                  <label className="text-sm font-medium text-slate-700" htmlFor="email">
                     이메일
                   </label>
                   <input
@@ -84,12 +84,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                     type="email"
                     defaultValue={email}
                     placeholder="you@example.com"
-                    className="h-12 rounded-lg border border-[#cfc6bb] bg-white px-3 text-sm outline-none focus:border-[#276f5f]"
+                    className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="h-12 rounded-full bg-[#276f5f] px-4 text-sm font-bold text-white hover:bg-[#1f5b4f]"
+                  className="h-11 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
                 >
                   로그인 링크 받기
                 </button>

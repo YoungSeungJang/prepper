@@ -18,7 +18,7 @@ export default async function RecipesPage() {
         action={
           <Link
             href="/recipes/new"
-            className="inline-flex h-11 items-center rounded-full bg-[#276f5f] px-5 text-sm font-bold text-white hover:bg-[#1f5b4f]"
+            className="inline-flex h-10 items-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
           >
             추가
           </Link>
@@ -28,13 +28,13 @@ export default async function RecipesPage() {
         <RecipeSearch />
       </div>
       {recipes.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3">
           {recipes.map((recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-[#cfc6bb] bg-[#fffdfa] p-6 text-sm font-semibold text-[#625c54]">
+        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm font-medium text-slate-500">
           아직 저장한 레시피가 없습니다. 먼저 레시피 링크를 추가해 주세요.
         </div>
       )}

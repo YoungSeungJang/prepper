@@ -8,7 +8,9 @@ import { validateRecipeImportUrl } from "@/lib/recipe-import";
 import { createReviewDraft, updateRecipeFromDraft } from "@/lib/recipes/queries";
 
 export async function startRecipeImportAction(formData: FormData) {
-  const user = await requireUser("/recipes/new");
+  const nextPathValue = formData.get("nextPath");
+  const nextPath = typeof nextPathValue === "string" ? nextPathValue : "/recipes/new";
+  const user = await requireUser(nextPath);
 
   const sourceUrl = formData.get("sourceUrl");
   const rawUrl = typeof sourceUrl === "string" ? sourceUrl.trim() : "";
