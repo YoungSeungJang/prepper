@@ -18,7 +18,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               width={1881}
               height={836}
               priority
-              className="h-7 w-auto"
+              className="h-10 w-auto"
             />
           </Link>
           <div className="flex items-center gap-1">
