@@ -32,10 +32,10 @@ export default async function Home() {
             />
           </Link>
           <Link
-            href="/login"
-            className="text-sm font-medium text-slate-600 transition hover:text-slate-950"
+            href="/login?next=%2Frecipes%2Fnew"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
           >
-            로그인
+            레시피 정리하기
           </Link>
         </header>
 
