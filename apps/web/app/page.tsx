@@ -24,9 +24,10 @@ export default async function Home() {
             <Image
               src="/prepper_logo.png"
               alt="Prepper"
-              width={1881}
-              height={836}
+              width={1237}
+              height={339}
               priority
+              unoptimized
               className="h-12 w-auto sm:h-14"
             />
           </Link>

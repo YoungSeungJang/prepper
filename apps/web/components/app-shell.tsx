@@ -15,9 +15,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             <Image
               src="/prepper_logo.png"
               alt="Prepper"
-              width={1881}
-              height={836}
+              width={1237}
+              height={339}
               priority
+              unoptimized
               className="h-10 w-auto"
             />
           </Link>
