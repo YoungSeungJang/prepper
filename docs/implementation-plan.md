@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-06-19 (Home 중심 UI 리디자인)
+마지막 업데이트: 2026-06-23 (Google/Kakao OAuth 로그인 전환)
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -46,7 +46,7 @@
 | 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
 | UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
 | UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. 비로그인 Home은 AppShell과 분리한 전용 랜딩으로 재구성하고, 링크 파싱 예시, 문제 설명, 정리 결과, 가격 정보 확장, CTA를 카드형 섹션과 fade-in 모션으로 구성. 로그인 Home은 링크 입력 중심으로 분리 |
-| Task 5. Supabase Auth 연결 | 구현 완료 / 소셜 provider 설정 필요 | Supabase browser/server client, Google/Kakao OAuth 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현 |
+| Task 5. Supabase Auth 연결 | 구현 완료 / Google·Kakao 수동 설정 확인 | Supabase browser/server client, Google/Kakao OAuth 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현. 이메일 링크 로그인은 제거. Kakao/Google provider enable 및 Google redirect URI mismatch 해결 완료 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
 | Task 8-1. DB 기반 import/review 초안 | 구현 완료 / Supabase 수동 확인 필요 | URL 입력 시 `needs_review` 초안 생성, review 화면 DB 초안 조회, 저장 시 기존 초안 `saved` 업데이트 |
@@ -189,7 +189,7 @@ packages/shared/tests/
 | 2 | 완료 | Next.js 웹앱 생성 | `apps/web` | `pnpm --filter web build` |
 | 3 | 완료 | Shared package 생성 | `packages/shared` | shared unit test 통과 |
 | 4 | 구현 완료 / 검증 보류 | Supabase schema/RLS 작성 | migration SQL | `supabase db reset`은 Docker/Supabase CLI 설치 후 필요 |
-| 5 | 구현 완료 / 소셜 provider 설정 필요 | Auth 연결 | Google/Kakao OAuth 로그인 | OAuth 시작/콜백, 보호 라우팅 |
+| 5 | 구현 완료 / Google·Kakao 수동 설정 확인 | Auth 연결 | Google/Kakao OAuth 로그인 | OAuth 시작/콜백, 보호 라우팅. Kakao/Google provider 설정 및 Google redirect URI 검증 완료 |
 | 6 | 구현 완료 / 로그인 세션 수동 확인 필요 | URL 검증 로직 | `/recipes/new` submit action | Vitest 통과, 로그인 후 폼 수동 확인 필요 |
 | 7 | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
 | 8 | 구현 완료 / 실 URL 품질 확인 필요 | import/review 흐름 | DB 기반 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱 | 실제 블로그/유튜브 링크 품질 확인 필요 |
@@ -461,6 +461,7 @@ npx supabase db reset
 - Supabase client를 browser/server 용도로 분리한다.
 - Google/Kakao OAuth 방식으로 로그인한다.
 - 로그인 후 `/recipes`로 이동한다.
+- 이메일 링크 로그인은 제거하고 소셜 로그인만 제공한다.
 
 생성할 파일:
 
@@ -486,6 +487,9 @@ pnpm --filter web build
 - `/login`에서 Google/Kakao 소셜 로그인을 시작할 수 있다.
 - Supabase Auth로 OAuth 요청이 간다.
 - OAuth callback 후 `/auth/callback`에서 로그인 세션이 생성된다.
+- Supabase Google/Kakao provider가 enable되어 있다.
+- Google Cloud Console의 Web application OAuth client에 `https://zsnvphqwgudyjsanxgfa.supabase.co/auth/v1/callback` redirect URI가 등록되어 있다.
+- Supabase URL Configuration에 로컬 앱 callback URL이 등록되어 있다.
 - 로그인한 사용자만 `/recipes`, `/recipes/new`, `/recipes/[id]`를 볼 수 있다.
 - Supabase secret/service role key가 브라우저 코드에 들어가지 않는다.
 
