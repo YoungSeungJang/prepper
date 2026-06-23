@@ -358,7 +358,7 @@
           <tr><td>2</td><td>완료</td><td>Next.js 웹앱 생성</td><td><code>apps/web</code></td><td><code>pnpm --filter web build</code></td></tr>
           <tr><td>3</td><td>완료</td><td>Shared package 생성</td><td><code>packages/shared</code></td><td>shared unit test 통과</td></tr>
           <tr><td>4</td><td>구현 완료 / 검증 보류</td><td>Supabase schema/RLS 작성</td><td>migration SQL</td><td><code>supabase db reset</code>은 Docker/Supabase CLI 설치 후 필요</td></tr>
-          <tr><td>5</td><td>구현 완료 / 실제 이메일 검증 필요</td><td>Auth 연결</td><td>Magic Link 로그인</td><td>로그인 링크 발송/콜백, 보호 라우팅</td></tr>
+          <tr><td>5</td><td>구현 완료 / 소셜 provider 설정 필요</td><td>Auth 연결</td><td>Google/Kakao OAuth 로그인</td><td>OAuth 시작/콜백, 보호 라우팅</td></tr>
           <tr><td>6</td><td>구현 완료 / 로그인 세션 수동 확인 필요</td><td>URL 검증 로직</td><td><code>/recipes/new</code> submit action</td><td>Vitest 통과, 로그인 후 폼 수동 확인 필요</td></tr>
           <tr><td>7</td><td>구현 완료 / Supabase migration 적용 후 수동 확인 필요</td><td>수동 레시피 CRUD</td><td>목록/상세/생성</td><td>저장 후 카드 보기</td></tr>
           <tr><td>8</td><td>구현 완료 / 실 URL 품질 확인 필요</td><td>import/review 흐름</td><td>DB 기반 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱</td><td>실제 블로그/유튜브 링크 품질 확인 필요</td></tr>
@@ -500,7 +500,7 @@ npx supabase db reset</code></pre>
           <div class="task-number">Task 5</div>
           <h3>Supabase Auth 연결</h3>
         </header>
-        <p>browser/server client를 분리하고, email magic link 로그인 페이지와 콜백 라우트를 만든다.</p>
+        <p>browser/server client를 분리하고, Google/Kakao OAuth 로그인 페이지와 콜백 라우트를 만든다.</p>
         <ul class="checklist">
           <li><code>apps/web/lib/supabase/browser.ts</code> 생성</li>
           <li><code>apps/web/lib/supabase/server.ts</code> 생성</li>

@@ -282,11 +282,6 @@ export default async function Home() {
             레시피 정리하기
           </button>
         </form>
-        {!user ? (
-          <p className="mt-3 text-xs leading-5 text-slate-500">
-            저장과 파싱은 로그인 후 진행됩니다. 이메일 링크로 저장함을 만들 수 있습니다.
-          </p>
-        ) : null}
       </section>
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2">

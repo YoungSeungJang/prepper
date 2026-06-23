@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { requestEmailOtpAction, signOutAction } from "@/app/auth/actions";
+import { signInWithSocialAction, signOutAction } from "@/app/auth/actions";
 import { getSafeNextPath } from "@/lib/auth-redirect";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -19,14 +19,12 @@ function getSearchParam(
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
-  const email = getSearchParam(params, "email");
   const error = getSearchParam(params, "error");
-  const sent = getSearchParam(params, "sent") === "1";
   const next = getSafeNextPath(getSearchParam(params, "next"));
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white p-6">
+      <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         {user ? (
           <>
             <p className="text-sm font-medium text-slate-500">로그인됨</p>
@@ -59,42 +57,39 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               저장한 레시피를 다시 열려면
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-              이메일 링크로 시작하기
+              소셜 계정으로 시작하기
             </h1>
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              별도 회원가입 없이 사용 중인 계정으로 Prepper 저장함을 만듭니다.
+            </p>
             {error ? (
               <p className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
                 {error}
               </p>
             ) : null}
-            {sent ? (
-              <div className="mt-6 rounded-md bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-700 ring-1 ring-slate-200">
-                {email} 주소로 로그인 링크를 보냈습니다. 메일의 링크를 클릭하면 저장함으로
-                이동합니다.
-              </div>
-            ) : (
-              <form action={requestEmailOtpAction} className="mt-6 grid gap-4">
+
+            <div className="mt-6 grid gap-3">
+              <form action={signInWithSocialAction}>
                 <input name="next" type="hidden" value={next} />
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-slate-700" htmlFor="email">
-                    이메일
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    defaultValue={email}
-                    placeholder="you@example.com"
-                    className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"
-                  />
-                </div>
+                <input name="provider" type="hidden" value="kakao" />
                 <button
                   type="submit"
-                  className="h-11 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
+                  className="h-12 w-full rounded-md bg-[#FEE500] px-4 text-sm font-semibold text-[#191919] transition hover:bg-[#f4dc00]"
                 >
-                  로그인 링크 받기
+                  카카오로 계속하기
                 </button>
               </form>
-            )}
+              <form action={signInWithSocialAction}>
+                <input name="next" type="hidden" value={next} />
+                <input name="provider" type="hidden" value="google" />
+                <button
+                  type="submit"
+                  className="h-12 w-full rounded-md bg-white px-4 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition hover:bg-slate-50"
+                >
+                  Google로 계속하기
+                </button>
+              </form>
+            </div>
           </>
         )}
       </div>

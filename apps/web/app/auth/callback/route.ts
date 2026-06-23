@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
   return NextResponse.redirect(
     new URL(
-      `/login?error=${encodeURIComponent("로그인 링크가 만료됐거나 올바르지 않습니다.")}&next=${encodeURIComponent(next)}`,
+      `/login?error=${encodeURIComponent("소셜 로그인에 실패했습니다. 다시 시도해 주세요.")}&next=${encodeURIComponent(next)}`,
       requestUrl.origin,
     ),
   );
