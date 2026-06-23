@@ -30,8 +30,8 @@ export default async function Home() {
               저장만 해둔 레시피를 다시 요리할 수 있게.
             </h1>
             <p className="mt-5 text-base leading-8 text-[#695f52] sm:text-lg">
-              YouTube, Shorts, 블로그 링크를 붙여넣으면 재료와 조리 순서를 저장 전
-              초안으로 정리합니다. 원문은 남기고, 요리할 때 필요한 내용만 빠르게 봅니다.
+              YouTube, Shorts, 블로그 링크를 붙여넣으면 재료와 조리 순서를 자동으로
+              정리해 저장합니다. 부족한 링크만 확인하고, 원문은 계속 남깁니다.
             </p>
             <div className="mt-8">
               <Link
@@ -49,7 +49,7 @@ export default async function Home() {
           <div className="prepper-fade-up-delay-1 rounded-[30px] bg-[#fffaf2] p-5 shadow-[0_30px_90px_rgba(78,61,39,0.16)] ring-1 ring-[#eadfce]">
             <div className="flex items-center justify-between gap-3 border-b border-[#eadfce] pb-4">
               <div>
-                <p className="text-xs font-medium text-[#8a7a68]">새 레시피 초안</p>
+                <p className="text-xs font-medium text-[#8a7a68]">새 레시피 저장</p>
                 <p className="mt-1 text-lg font-semibold tracking-tight text-[#201a14]">제육볶음</p>
               </div>
               <span className="rounded-full bg-[#fff0c2] px-3 py-1 text-xs font-medium text-[#7a5420]">
@@ -64,7 +64,7 @@ export default async function Home() {
                   youtube.com/shorts/jeyuk-recipe
                 </div>
                 <div className="flex h-10 items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-[#2b3320]">
-                  초안 만들기
+                  저장하기
                 </div>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default async function Home() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {["원본 링크 유지", "저장 전 수정", "가격 정보 준비"].map((label) => (
+              {["원본 링크 유지", "부족할 때만 확인", "가격 정보 준비"].map((label) => (
                 <div key={label} className="rounded-2xl bg-white px-3 py-3 text-sm font-medium text-[#4d463d] ring-1 ring-[#eadfce]">
                   {label}
                 </div>
@@ -116,7 +116,7 @@ export default async function Home() {
               {[
                 ["링크는 흩어지고", "유튜브, 쇼츠, 블로그, 메신저에 저장한 레시피가 제각각 남습니다."],
                 ["요리 중에는 느리고", "원문 전체보다 재료, 양념, 조리 순서만 빠르게 보고 싶습니다."],
-                ["자동 정리는 검토가 필요하고", "원문에 없는 내용은 확정하지 않고 저장 전 확인 대상으로 남깁니다."],
+                ["부족한 정보는 멈추고", "원문에 없는 내용은 확정하지 않고 확인 대상으로 남깁니다."],
               ].map(([title, description]) => (
                 <div key={title} className="rounded-[24px] bg-white/80 p-6 shadow-sm ring-1 ring-[#eadfce]">
                   <h3 className="text-base font-semibold tracking-tight text-[#201a14]">{title}</h3>
@@ -140,7 +140,7 @@ export default async function Home() {
                 ["재료", "분량과 단위를 최대한 보존해 체크하기 쉬운 목록으로 정리합니다."],
                 ["조리 순서", "긴 설명을 요리 흐름에 맞는 단계로 나눕니다."],
                 ["원본 링크", "출처는 계속 남겨두어 필요할 때 원문으로 돌아갈 수 있습니다."],
-                ["확인 필요", "정보가 부족하거나 애매한 항목은 저장 전 검토하도록 표시합니다."],
+                ["확인 필요", "정보가 부족하거나 애매한 링크만 보정 화면으로 보냅니다."],
               ].map(([title, description]) => (
                 <div key={title} className="rounded-[24px] bg-[#fffaf2] p-6 shadow-sm ring-1 ring-[#eadfce]">
                   <h3 className="text-base font-semibold tracking-tight text-[#201a14]">{title}</h3>
@@ -191,7 +191,7 @@ export default async function Home() {
               첫 레시피 링크부터 정리해보세요.
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#5f564b]">
-              카카오 또는 Google 계정으로 시작하고, 링크를 붙여넣어 저장 전 초안을 만듭니다.
+              카카오 또는 Google 계정으로 시작하고, 링크를 붙여넣어 바로 저장해보세요.
             </p>
             <div className="mt-7 flex justify-center">
               <Link
@@ -216,11 +216,11 @@ export default async function Home() {
           <div className="max-w-2xl">
             <p className="text-sm font-medium text-[#7b6f61]">오늘 정리할 링크</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#201a14] sm:text-4xl">
-              레시피 링크를 붙여넣고 초안을 확인하세요.
+              레시피 링크를 붙여넣고 바로 정리하세요.
             </h1>
             <p className="mt-3 text-sm leading-6 text-[#695f52] sm:text-base">
-              YouTube, Shorts, 블로그 링크를 정리한 뒤 저장 전 검토 화면에서 재료와
-              조리 순서를 바로 고칠 수 있습니다.
+              YouTube, Shorts, 블로그 링크를 정리해 저장합니다. 정보가 부족한 링크만
+              확인 화면에서 재료와 조리 순서를 보정합니다.
             </p>
           </div>
 

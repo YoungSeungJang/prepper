@@ -30,6 +30,32 @@ describe("parseRecipeDraftForm", () => {
     });
   });
 
+  it("normalizes repeated ingredient and step fields from review editors", () => {
+    const formData = new FormData();
+    formData.set("sourceUrl", "https://example.com/recipe");
+    formData.set("sourceType", "web");
+    formData.set("title", "감자조림");
+    formData.append("ingredients", "감자 2개");
+    formData.append("ingredients", "");
+    formData.append("ingredients", "간장 2큰술");
+    formData.append("steps", "감자를 썬다.");
+    formData.append("steps", "양념과 함께 조린다.");
+
+    expect(parseRecipeDraftForm(formData)).toMatchObject({
+      ok: true,
+      draft: {
+        ingredients: [
+          { rawText: "감자 2개", importance: "primary" },
+          { rawText: "간장 2큰술", importance: "secondary" },
+        ],
+        steps: [
+          { position: 1, body: "감자를 썬다." },
+          { position: 2, body: "양념과 함께 조린다." },
+        ],
+      },
+    });
+  });
+
   it("rejects missing required fields", () => {
     expect(parseRecipeDraftForm(new FormData())).toEqual({
       ok: false,

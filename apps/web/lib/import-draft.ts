@@ -268,6 +268,26 @@ function getImportConfidence(warnings: string[]) {
   return 0.2;
 }
 
+export function shouldAutoSaveImportedRecipeDraft(
+  draft: Pick<
+    ImportedRecipeDraft,
+    "ingredients" | "parseConfidence" | "parseWarnings" | "steps" | "title"
+  >,
+) {
+  const hasEnoughIngredients = draft.ingredients.length >= 2;
+  const hasEnoughSteps = draft.steps.length >= 2;
+  const hasNoWarnings = draft.parseWarnings.length === 0;
+  const hasEnoughConfidence = draft.parseConfidence >= 0.7;
+
+  return Boolean(
+    draft.title.trim() &&
+      hasEnoughIngredients &&
+      hasEnoughSteps &&
+      hasNoWarnings &&
+      hasEnoughConfidence,
+  );
+}
+
 function getImportance(index: number): IngredientImportance {
   if (index === 0) {
     return "primary";

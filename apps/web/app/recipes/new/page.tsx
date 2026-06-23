@@ -27,7 +27,7 @@ export default async function NewRecipePage({ searchParams }: NewRecipePageProps
     <AppShell>
       <PageHeading
         title="새 레시피 저장"
-        description="YouTube나 웹 레시피 링크를 붙여넣으면 저장 전 검토 초안을 만듭니다."
+        description="YouTube나 웹 레시피 링크를 붙여넣으면 자동으로 정리해 저장합니다. 정보가 부족할 때만 확인 화면으로 이동합니다."
       />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <RecipeForm
@@ -38,7 +38,7 @@ export default async function NewRecipePage({ searchParams }: NewRecipePageProps
         />
         <div className="grid content-start gap-4">
           <StatusPanel title="가져오기 흐름">
-            링크를 분석한 뒤 바로 저장하지 않고 검토 화면에서 확인합니다.
+            제목, 재료, 조리 순서가 충분하면 바로 저장합니다. 부족한 링크만 확인이 필요합니다.
           </StatusPanel>
           <StatusPanel title="지원 링크">
             YouTube, Shorts, 일반 웹 레시피를 먼저 지원합니다.

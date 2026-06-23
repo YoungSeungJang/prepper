@@ -3,11 +3,19 @@ import { describe, expect, it } from "vitest";
 import { RecipeForm } from "./recipe-form";
 
 describe("RecipeForm", () => {
-  it("does not submit sample recipe text when review data is empty", () => {
-    const html = renderToStaticMarkup(<RecipeForm mode="review" />);
+  it("renders review ingredients and steps as item editors", () => {
+    const html = renderToStaticMarkup(
+      <RecipeForm
+        ingredients={[{ rawText: "두부 1모" }]}
+        mode="review"
+        steps={["두부를 썬다."]}
+      />,
+    );
 
-    expect(html).not.toContain(">돼지고기 앞다리살 300g");
-    expect(html).not.toContain(">재료를 먹기 좋은 크기로 썬다.");
-    expect(html).toContain("placeholder=\"돼지고기 앞다리살 300g");
+    expect(html).not.toContain("<textarea");
+    expect(html).toContain("value=\"두부 1모\"");
+    expect(html).toContain("value=\"두부를 썬다.\"");
+    expect(html).toContain("placeholder=\"재료 추가\"");
+    expect(html).toContain("placeholder=\"순서 추가\"");
   });
 });

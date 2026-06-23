@@ -2,10 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { buildImportedRecipeDraft } from "@/lib/import-draft";
+import {
+  buildImportedRecipeDraft,
+  shouldAutoSaveImportedRecipeDraft,
+} from "@/lib/import-draft";
 import { parseRecipeDraftForm } from "@/lib/recipe-draft";
 import { validateRecipeImportUrl } from "@/lib/recipe-import";
-import { createReviewDraft, updateRecipeFromDraft } from "@/lib/recipes/queries";
+import {
+  createRecipe,
+  createReviewDraft,
+  updateRecipeFromDraft,
+} from "@/lib/recipes/queries";
 
 export async function startRecipeImportAction(formData: FormData) {
   const nextPathValue = formData.get("nextPath");
@@ -20,22 +27,28 @@ export async function startRecipeImportAction(formData: FormData) {
     redirect(result.destination);
   }
 
-  let recipeId: string;
+  let destination = "/recipes";
   try {
     const draft = await buildImportedRecipeDraft({
       sourceUrl: result.sourceUrl,
       sourceType: result.sourceType,
     });
 
-    recipeId = await createReviewDraft({
-      draft,
-      sourceUrl: result.sourceUrl,
-      sourceType: result.sourceType,
-      sourceVideoId: result.youtubeVideoId,
-      userId: user.id,
-      parseConfidence: draft.parseConfidence,
-      parseWarnings: draft.parseWarnings,
-    });
+    if (shouldAutoSaveImportedRecipeDraft(draft)) {
+      const recipeId = await createRecipe(draft, user.id);
+      destination = `/recipes/${recipeId}`;
+    } else {
+      const recipeId = await createReviewDraft({
+        draft,
+        sourceUrl: result.sourceUrl,
+        sourceType: result.sourceType,
+        sourceVideoId: result.youtubeVideoId,
+        userId: user.id,
+        parseConfidence: draft.parseConfidence,
+        parseWarnings: draft.parseWarnings,
+      });
+      destination = `/recipes/${recipeId}/review`;
+    }
   } catch (error) {
     console.error("Failed to create review draft", error);
     const params = new URLSearchParams({
@@ -45,7 +58,7 @@ export async function startRecipeImportAction(formData: FormData) {
     redirect(`/recipes/new?${params.toString()}`);
   }
 
-  redirect(`/recipes/${recipeId}/review`);
+  redirect(destination);
 }
 
 export async function saveRecipeAction(formData: FormData) {

@@ -49,12 +49,13 @@
 | Task 5. Supabase Auth 연결 | 구현 완료 / Google·Kakao 수동 설정 확인 | Supabase browser/server client, Google/Kakao OAuth 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현. 이메일 링크 로그인은 제거. Kakao/Google provider enable 및 Google redirect URI mismatch 해결 완료 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
-| Task 8-1. DB 기반 import/review 초안 | 구현 완료 / Supabase 수동 확인 필요 | URL 입력 시 `needs_review` 초안 생성, review 화면 DB 초안 조회, 저장 시 기존 초안 `saved` 업데이트 |
+| Task 8-1. DB 기반 import/review 초안 | 구현 완료 / Supabase 수동 확인 필요 | URL 입력 시 DB 초안 생성, review 화면 DB 초안 조회, 저장 시 기존 초안 `saved` 업데이트 |
 | Task 8-2. 기본 파싱 연결 | 구현 완료 / 실 URL 품질 확인 필요 | 웹 JSON-LD Recipe 파싱, HowToSection/한국어 섹션 fallback, HTML title fallback, YouTube oEmbed title |
 | Task 8-3. 파싱 실패/품질 처리 | 구현 완료 / 실 URL 품질 확인 필요 | 제목만 가져온 초안, 유튜브 제목-only 초안, fetch 실패 fallback에 review 경고 표시 |
 | Task 8-4. 실제 파서 1차 연결 | 구현 완료 / API 키 입력 후 실 URL 확인 필요 | YouTube API description 수집, 일반 웹 본문 추출, OpenAI Structured Outputs 기반 LLM 파싱 |
 | Task 8-4 버그픽스. YouTube Shorts URL 파싱 | 완료 | `packages/shared/src/recipes/validation.ts`의 `getYoutubeVideoId`가 `/shorts/VIDEO_ID` 경로를 처리하지 못해 `sourceType = "web"`으로 잘못 분류되던 문제 수정. Shorts도 YouTube API description 수집 경로로 올바르게 처리됨. 테스트 1개 추가 |
 | Task 8-5. YouTube transcript fallback | 완료 / 실 URL 품질 확인 필요 | YouTube description에 재료/조리순서 같은 강한 단서가 부족하면 watch page의 공개 caption track에서 transcript를 가져와 LLM parser 입력에 추가. transcript가 없거나 실패하면 review warning 유지 |
+| Task 8-6. 자동 저장 + 확인 fallback | 완료 / 실 URL 품질 확인 필요 | 제목, 재료 2개 이상, 조리 순서 2개 이상, warning 없음, confidence 0.7 이상이면 바로 `saved`로 저장하고 상세로 이동. 부족한 링크만 `needs_review` 확인 화면으로 이동. 확인 화면은 textarea 대신 항목별 input 편집 UI로 변경 |
 | Task 9. 재료별 상품 후보/가격 변동 | 대기 | 기존 mock 가격 힌트에서 방향 변경. 재료를 누르면 Coupang 상품 후보와 상품별 현재가/가격 변동을 보여주는 구조로 설계 예정 |
 
 완료된 검증:
@@ -192,7 +193,7 @@ packages/shared/tests/
 | 5 | 구현 완료 / Google·Kakao 수동 설정 확인 | Auth 연결 | Google/Kakao OAuth 로그인 | OAuth 시작/콜백, 보호 라우팅. Kakao/Google provider 설정 및 Google redirect URI 검증 완료 |
 | 6 | 구현 완료 / 로그인 세션 수동 확인 필요 | URL 검증 로직 | `/recipes/new` submit action | Vitest 통과, 로그인 후 폼 수동 확인 필요 |
 | 7 | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 수동 레시피 CRUD | 목록/상세/생성 | 저장 후 카드 보기 |
-| 8 | 구현 완료 / 실 URL 품질 확인 필요 | import/review 흐름 | DB 기반 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱 | 실제 블로그/유튜브 링크 품질 확인 필요 |
+| 8 | 구현 완료 / 실 URL 품질 확인 필요 | import/save + review fallback 흐름 | 충분하면 바로 저장, 부족하면 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱 | 실제 블로그/유튜브 링크 품질 확인 필요 |
 | 9 | 대기 | mock price hint | 가격 힌트 섹션 | 가격 실패가 저장을 막지 않음 |
 | 10 | 대기 | 추천 홈 | 추천 카드/empty state | 저장 레시피 추천 표시 |
 | 11 | 대기 | E2E 테스트 | Playwright 테스트 | 핵심 흐름 통과 |
@@ -587,17 +588,26 @@ pnpm --filter web build
 - 저장된 레시피를 검색할 수 있다.
 - 다른 사용자의 레시피는 보이지 않는다.
 
-### Task 8. 링크 import + review 흐름 구현
+### Task 8. 링크 import + 자동 저장/확인 fallback 흐름 구현
 
 목표:
 
-- 사용자가 URL을 붙여넣으면 레시피 초안이 생성된다.
-- 초안은 바로 저장되지 않고 review 화면에서 확인 후 저장된다.
+- 사용자가 URL을 붙여넣으면 레시피가 자동 정리된다.
+- 파싱 품질이 충분하면 사용자 검토 없이 바로 `saved`로 저장하고 상세 화면으로 이동한다.
+- 파싱 품질이 부족하거나 warning이 있으면 `needs_review` 상태로 만들고 확인 화면에서 보정 후 저장한다.
 - 첫 버전은 서버 액션 기반 parser로 시작한다. Supabase Edge Function 분리는 배포/운영 단계에서 다시 판단한다.
 - YouTube는 YouTube Data API `videos.list(part=snippet)`로 title/description을 가져온다.
 - description에 레시피 단서가 부족하면 공개 caption track의 transcript를 가져와 LLM parser 입력에 추가한다.
 - 일반 웹/블로그는 JSON-LD를 주 경로로 믿지 않고, HTML에서 읽을 만한 본문 텍스트를 추출해 LLM parser에 보낸다.
 - OpenAI API 키가 없거나 LLM 파싱이 실패하면 기존 비용 없는 fallback parser와 review warning을 사용한다.
+
+자동 저장 기준:
+
+- 제목이 있다.
+- 재료가 2개 이상이다.
+- 조리 순서가 2개 이상이다.
+- parser warning이 없다.
+- parser confidence가 0.7 이상이다.
 
 생성/수정할 파일:
 
@@ -623,14 +633,15 @@ import-recipe
 review 화면 필수 UI:
 
 - 제목 수정
-- 재료 수정
-- 조리 순서 수정
+- 재료 항목별 input 수정
+- 조리 순서 항목별 input 수정
 - parser warning 표시
-- 저장하기 버튼
+- 이대로 저장 버튼
 
 상태 전이:
 
 ```text
+importing -> saved
 importing -> needs_review -> saved
 importing -> failed
 failed -> importing
@@ -645,21 +656,25 @@ pnpm --filter web build
 
 수동 확인:
 
-1. `/recipes/new`에서 YouTube URL을 붙여넣는다.
-2. review 화면으로 이동한다.
-3. 제목/재료/순서를 수정한다.
-4. 저장한다.
-5. 상세 페이지에서 수정 결과가 보인다.
+1. `/recipes/new`에서 재료와 조리 순서가 충분한 웹/YouTube URL을 붙여넣는다.
+2. 바로 상세 페이지로 이동하는지 확인한다.
+3. 정보가 부족한 YouTube/Shorts URL을 붙여넣는다.
+4. 확인 화면으로 이동하는지 확인한다.
+5. 제목/재료/순서를 항목별 input에서 수정한다.
+6. 저장한다.
+7. 상세 페이지에서 수정 결과가 보인다.
 
 완료 기준:
 
-- 사용자 검토 없이 `saved`가 되지 않는다.
+- 품질이 충분한 import는 사용자 검토 없이 바로 `saved`가 된다.
+- 품질이 부족한 import만 `needs_review` 확인 화면으로 이동한다.
 - import 실패가 전체 앱을 깨뜨리지 않는다.
 - double submit을 막는다.
 - 구조화 데이터가 일부 다른 웹 페이지도 제목만 저장되지 않고 재료/순서 후보를 채운다.
 - 제목만 가져온 초안은 review 화면에서 재료/조리순서 확인 경고를 보여준다.
 - YouTube description/transcript 또는 일반 웹 본문에서 LLM parser가 재료/조리순서 초안을 만든다.
 - YouTube description/transcript 모두 레시피 정보를 충분히 제공하지 못하면 review warning을 보여준다.
+- review 화면은 줄바꿈 textarea가 아니라 항목별 input으로 재료/순서를 수정한다.
 
 ### Task 9. Mock 가격 힌트 구현
 

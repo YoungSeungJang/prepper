@@ -16,6 +16,12 @@ function parseLines(value: string) {
     .filter(Boolean);
 }
 
+function parseFormLines(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .flatMap((value) => (typeof value === "string" ? parseLines(value) : []));
+}
+
 function getImportance(index: number): IngredientImportance {
   if (index === 0) {
     return "primary";
@@ -40,13 +46,11 @@ export function parseRecipeDraftForm(formData: FormData): DraftFormResult {
     return { ok: false, message: "제목과 원본 링크를 확인해 주세요." };
   }
 
-  const ingredients = parseLines(getFormString(formData, "ingredients")).map(
-    (rawText, index) => ({
-      rawText,
-      importance: getImportance(index),
-    }),
-  );
-  const steps = parseLines(getFormString(formData, "steps")).map((body, index) => ({
+  const ingredients = parseFormLines(formData, "ingredients").map((rawText, index) => ({
+    rawText,
+    importance: getImportance(index),
+  }));
+  const steps = parseFormLines(formData, "steps").map((body, index) => ({
     position: index + 1,
     body,
   }));

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildImportQualityWarnings,
+  shouldAutoSaveImportedRecipeDraft,
   extractReadableTextFromHtml,
   fetchYoutubeSourceText,
   parseRecipeHtmlDraft,
@@ -116,6 +117,36 @@ describe("parseRecipeHtmlDraft", () => {
       "재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
       "조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
     ]);
+  });
+
+  it("auto-saves only when parsed recipe content is complete enough", () => {
+    expect(
+      shouldAutoSaveImportedRecipeDraft({
+        title: "김치찌개",
+        ingredients: [
+          { rawText: "김치 1컵", importance: "primary" },
+          { rawText: "두부 1모", importance: "secondary" },
+        ],
+        steps: [
+          { position: 1, body: "김치를 볶는다." },
+          { position: 2, body: "물을 붓고 끓인다." },
+        ],
+        parseConfidence: 0.8,
+        parseWarnings: [],
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldAutoSaveImportedRecipeDraft({
+        title: "쇼츠 레시피",
+        ingredients: [{ rawText: "재료를 확인해 주세요", importance: "primary" }],
+        steps: [{ position: 1, body: "원문을 보고 조리 순서를 확인해 주세요." }],
+        parseConfidence: 0.2,
+        parseWarnings: [
+          "유튜브 설명/자막에서 레시피 정보를 충분히 찾지 못했어요. 재료와 조리 순서를 직접 확인해 주세요.",
+        ],
+      }),
+    ).toBe(false);
   });
 
   it("extracts readable web text for LLM parsing", () => {

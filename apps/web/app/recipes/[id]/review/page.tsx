@@ -29,8 +29,8 @@ export default async function ReviewRecipePage({
   return (
     <AppShell>
       <PageHeading
-        title="저장 전 확인"
-        description="자동으로 가져온 초안을 확인하고 필요한 부분만 수정합니다."
+        title="정보 확인 필요"
+        description="자동 정리에 부족한 부분이 있어 저장 전에 필요한 내용만 보정합니다."
       />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <RecipeForm
@@ -47,7 +47,7 @@ export default async function ReviewRecipePage({
         />
         <div className="grid content-start gap-4">
           <StatusPanel title="분석 상태">
-            저장하기 전 제목, 재료, 조리 순서가 원문과 맞는지 확인해 주세요.
+            재료와 조리 순서를 항목별로 확인해 주세요. 비워둔 항목은 저장하지 않습니다.
           </StatusPanel>
           {recipe.warnings?.length ? (
             <StatusPanel title="확인 필요">
