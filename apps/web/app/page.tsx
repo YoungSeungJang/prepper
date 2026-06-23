@@ -1,7 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { RecommendationList } from "@/components/recommendation-list";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import { getCurrentUser } from "@/lib/auth";
 import { mockRecipes } from "@/lib/mock-data";
 import { countReviewDrafts, listSavedRecipes } from "@/lib/recipes/queries";
@@ -17,27 +18,9 @@ export default async function Home() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-[#f7f1e8] text-[#201a14]">
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
-          <Link href="/" aria-label="Prepper 홈" className="inline-flex items-center">
-            <Image
-              src="/prepper_logo.png"
-              alt="Prepper"
-              width={1237}
-              height={339}
-              priority
-              unoptimized
-              className="h-12 w-auto sm:h-14"
-            />
-          </Link>
-          <Link
-            href="/login?next=%2Frecipes%2Fnew"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-[#2f3b22] px-4 text-sm font-medium text-white shadow-sm transition hover:bg-[#25301b]"
-          >
-            레시피 정리하기
-          </Link>
-        </header>
-
+      <div className="flex min-h-screen flex-col bg-[#f7f1e8] text-[#201a14]">
+        <SiteHeader signedIn={false} />
+        <main className="flex-1">
         <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 pb-24 pt-10 sm:px-8 sm:pt-16 lg:grid-cols-[minmax(0,0.86fr)_minmax(480px,1.14fr)] lg:items-center">
           <div className="prepper-fade-up max-w-xl">
             <p className="inline-flex rounded-full bg-white/75 px-3 py-1 text-sm font-medium text-[#6c5d4c] shadow-sm ring-1 ring-[#eadfce]">
@@ -220,27 +203,29 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      </main>
+        </main>
+        <SiteFooter />
+      </div>
     );
   }
 
   return (
     <AppShell>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-7">
+        <section className="rounded-[28px] bg-[#fffaf2] p-5 shadow-sm ring-1 ring-[#eadfce] sm:p-7">
           <div className="max-w-2xl">
-            <p className="text-sm font-medium text-slate-500">오늘 정리할 링크</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <p className="text-sm font-medium text-[#7b6f61]">오늘 정리할 링크</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#201a14] sm:text-4xl">
               레시피 링크를 붙여넣고 초안을 확인하세요.
             </h1>
-            <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
+            <p className="mt-3 text-sm leading-6 text-[#695f52] sm:text-base">
               YouTube, Shorts, 블로그 링크를 정리한 뒤 저장 전 검토 화면에서 재료와
               조리 순서를 바로 고칠 수 있습니다.
             </p>
           </div>
 
           <form action={startRecipeImportAction} className="mt-7 grid gap-3">
-            <label className="text-sm font-medium text-slate-700" htmlFor="home-source-url">
+            <label className="text-sm font-medium text-[#4d463d]" htmlFor="home-source-url">
               레시피 URL
             </label>
             <input name="nextPath" type="hidden" value="/recipes/new" />
@@ -249,11 +234,11 @@ export default async function Home() {
                 id="home-source-url"
                 name="sourceUrl"
                 placeholder="https://www.youtube.com/watch?v=..."
-                className="h-14 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 text-base outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                className="h-14 min-w-0 rounded-xl border border-[#eadfce] bg-white px-4 text-base outline-none transition placeholder:text-[#b3a796] focus:border-[#7b8a55]"
               />
               <button
                 type="submit"
-                className="h-14 rounded-xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="h-14 rounded-xl bg-[#2f3b22] px-5 text-sm font-medium text-white transition hover:bg-[#25301b]"
               >
                 레시피 정리하기
               </button>
@@ -263,13 +248,13 @@ export default async function Home() {
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
               href="/recipes"
-              className="inline-flex h-10 items-center rounded-lg bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-10 items-center rounded-lg bg-[#f4eadc] px-3 text-sm font-medium text-[#4d463d] transition hover:bg-[#eadfce]"
             >
               저장함 보기
             </Link>
             <Link
               href="/recipes"
-              className="inline-flex h-10 items-center rounded-lg bg-amber-50 px-3 text-sm font-medium text-amber-800 ring-1 ring-amber-200 transition hover:bg-amber-100"
+              className="inline-flex h-10 items-center rounded-lg bg-[#fff0c2] px-3 text-sm font-medium text-[#7a5420] ring-1 ring-[#edd389] transition hover:bg-[#f5df9e]"
             >
               검토할 초안 {needsReviewCount}개
             </Link>
@@ -277,28 +262,28 @@ export default async function Home() {
         </section>
 
         <aside className="grid gap-4">
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <p className="text-sm font-medium text-slate-500">작업 상태</p>
+          <section className="rounded-[28px] bg-[#fffaf2] p-5 shadow-sm ring-1 ring-[#eadfce]">
+            <p className="text-sm font-medium text-[#7b6f61]">작업 상태</p>
             <div className="mt-4 grid gap-3">
-              <div className="rounded-xl bg-amber-50 p-4 ring-1 ring-amber-200">
-                <p className="text-2xl font-semibold tracking-tight text-amber-900">
+              <div className="rounded-xl bg-[#fff0c2] p-4 ring-1 ring-[#edd389]">
+                <p className="text-2xl font-semibold tracking-tight text-[#7a5420]">
                   {needsReviewCount}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-amber-800">저장 전 확인이 필요한 초안</p>
+                <p className="mt-1 text-sm leading-6 text-[#7a5420]">저장 전 확인이 필요한 초안</p>
               </div>
-              <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
-                <p className="text-2xl font-semibold tracking-tight text-slate-950">
+              <div className="rounded-xl bg-[#f4eadc] p-4 ring-1 ring-[#eadfce]">
+                <p className="text-2xl font-semibold tracking-tight text-[#201a14]">
                   {recentRecipes.length}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">최근 저장한 레시피</p>
+                <p className="mt-1 text-sm leading-6 text-[#695f52]">최근 저장한 레시피</p>
               </div>
             </div>
           </section>
 
-          <section className="rounded-2xl bg-slate-950 p-5 text-white shadow-sm">
-            <p className="text-sm font-medium text-slate-400">다음 기능</p>
+          <section className="rounded-[28px] bg-[#2b3320] p-5 text-white shadow-sm">
+            <p className="text-sm font-medium text-white/55">다음 기능</p>
             <h2 className="mt-2 text-lg font-semibold tracking-tight">재료별 상품 후보</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">
+            <p className="mt-3 text-sm leading-6 text-white/70">
               가격 정보는 메인 작업을 방해하지 않도록 상세 화면에서 재료를 선택하는 흐름으로
               붙입니다.
             </p>
@@ -306,17 +291,17 @@ export default async function Home() {
         </aside>
       </div>
 
-      <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+      <section className="mt-8 rounded-[28px] bg-[#fffaf2] p-5 shadow-sm ring-1 ring-[#eadfce] sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-slate-500">내 저장함</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+            <p className="text-sm font-medium text-[#7b6f61]">내 저장함</p>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight text-[#201a14]">
               최근 저장한 레시피
             </h2>
           </div>
           <Link
             href="/recipes"
-            className="inline-flex h-10 items-center rounded-lg px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+            className="inline-flex h-10 items-center rounded-lg px-3 text-sm font-medium text-[#6c5d4c] transition hover:bg-[#f4eadc] hover:text-[#201a14]"
           >
             모두 보기
           </Link>
@@ -325,9 +310,9 @@ export default async function Home() {
         {recentRecipes.length > 0 ? (
           <RecommendationList recipes={recentRecipes} />
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
-            <p className="text-sm font-medium text-slate-700">아직 저장한 레시피가 없습니다.</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+          <div className="rounded-xl border border-dashed border-[#d8c9b4] bg-[#f7f1e8] p-6">
+            <p className="text-sm font-medium text-[#4d463d]">아직 저장한 레시피가 없습니다.</p>
+            <p className="mt-2 text-sm leading-6 text-[#7b6f61]">
               위에 레시피 링크를 붙여넣고 첫 저장함을 만들어보세요.
             </p>
           </div>
