@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-06-23 (비로그인 Home 디자인 2차 정리)
+마지막 업데이트: 2026-06-23 (로그인 Home 작업 화면 정리)
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -45,7 +45,7 @@
 | Task 4. Supabase DB schema와 RLS 작성 | 구현 완료 / DB 적용 검증 보류 | migration SQL, index, trigger, RLS policy 작성 완료. Docker/Supabase CLI 미설치로 `supabase db reset`은 미실행 |
 | 화면 우선 작업 | 완료 | mock 데이터 기반 홈, 목록, 추가, 상세, 검토, 로그인 화면 구현 |
 | UI 디자인 리뷰 및 모바일 우선 개선 | 완료 | 앱형 추천 패널, 활성 내비게이션, 폰트/팔레트, 상세/목록 정보 구조 개선 |
-| UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. 비로그인 Home은 제품 미리보기 중심 Hero, 단일 CTA, 한국어 섹션 라벨, 따뜻한 크림/올리브 팔레트로 2차 정리. 로그인 Home은 링크 입력 중심으로 분리 |
+| UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. 비로그인 Home은 제품 미리보기 중심 Hero, 단일 CTA, 한국어 섹션 라벨, 따뜻한 크림/올리브 팔레트로 2차 정리. 로그인 Home은 설명형 카드에서 링크 입력, 검토 대기, 최근 저장함이 바로 보이는 import workspace로 재구성 |
 | Task 5. Supabase Auth 연결 | 구현 완료 / Google·Kakao 수동 설정 확인 | Supabase browser/server client, Google/Kakao OAuth 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현. 이메일 링크 로그인은 제거. Kakao/Google provider enable 및 Google redirect URI mismatch 해결 완료 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
