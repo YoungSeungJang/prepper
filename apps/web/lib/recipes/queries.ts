@@ -125,6 +125,23 @@ export async function getRecipe(id: string): Promise<RecipeListItem | null> {
   return data ? toListItem(data as RecipeRow) : null;
 }
 
+export async function findRecipeBySourceUrl(sourceUrl: string, userId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("id,status")
+    .eq("user_id", userId)
+    .eq("source_url", sourceUrl)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to find recipe by source URL", error);
+    return null;
+  }
+
+  return data as { id: string; status: RecipeStatus } | null;
+}
+
 export async function createRecipe(draft: RecipeDraftInput, userId: string) {
   const supabase = await createClient();
   const { data: recipe, error: recipeError } = await supabase

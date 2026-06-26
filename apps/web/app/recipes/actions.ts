@@ -11,10 +11,12 @@ import { validateRecipeImportUrl } from "@/lib/recipe-import";
 import {
   createRecipe,
   createReviewDraft,
+  findRecipeBySourceUrl,
   updateRecipeFromDraft,
 } from "@/lib/recipes/queries";
 
 export type RecipeImportFormState = {
+  duplicateRecipeId?: string;
   error?: string;
   sourceUrl?: string;
 };
@@ -32,6 +34,15 @@ async function importRecipeFromForm(formData: FormData): Promise<RecipeImportFor
     return {
       error: result.message,
       sourceUrl: rawUrl,
+    };
+  }
+
+  const existingRecipe = await findRecipeBySourceUrl(result.sourceUrl, user.id);
+  if (existingRecipe) {
+    return {
+      duplicateRecipeId: existingRecipe.id,
+      error: "이미 저장한 레시피예요.",
+      sourceUrl: result.sourceUrl,
     };
   }
 

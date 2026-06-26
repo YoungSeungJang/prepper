@@ -218,20 +218,35 @@ function AddRecipeDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         {state.error ? (
-          <p
+          <div
             style={{
-              background: "#fff0f0",
-              border: "1px solid #ffd1d1",
+              background: state.duplicateRecipeId ? "#fff8e1" : "#fff0f0",
+              border: state.duplicateRecipeId ? "1px solid #f1df9a" : "1px solid #ffd1d1",
               borderRadius: 10,
-              color: "#b42318",
+              color: state.duplicateRecipeId ? "#7a5420" : "#b42318",
               fontSize: 13,
               fontWeight: 600,
               margin: "18px 0 0",
               padding: "10px 12px",
             }}
           >
-            {state.error}
-          </p>
+            <div>{state.error}</div>
+            {state.duplicateRecipeId ? (
+              <a
+                href={`/?recipe=${state.duplicateRecipeId}`}
+                style={{
+                  color: "#7a5420",
+                  display: "inline-flex",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  marginTop: 8,
+                  textDecoration: "none",
+                }}
+              >
+                저장된 카드 열기
+              </a>
+            ) : null}
+          </div>
         ) : null}
 
         <form action={formAction} style={{ display: "grid", gap: 12, marginTop: 20 }}>
