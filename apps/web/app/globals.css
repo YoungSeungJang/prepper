@@ -52,6 +52,12 @@ body {
   }
 }
 
+@keyframes prepper-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .prepper-fade-up {
   animation: prepperFadeUp 640ms ease-out both;
 }
@@ -74,5 +80,9 @@ body {
   .prepper-fade-up-delay-2,
   .prepper-fade-up-delay-3 {
     animation: none;
+  }
+
+  [style*="prepper-spin"] {
+    animation: none !important;
   }
 }

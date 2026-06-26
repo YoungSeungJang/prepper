@@ -35,6 +35,96 @@ function SubmitButton() {
   );
 }
 
+function ImportProgress() {
+  const { pending } = useFormStatus();
+
+  if (!pending) {
+    return null;
+  }
+
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        background: "#f5f5f7",
+        border: "1px solid #e5e5ea",
+        borderRadius: 14,
+        display: "grid",
+        gap: 12,
+        padding: 14,
+      }}
+    >
+      <div style={{ display: "flex", gap: 10 }}>
+        <span
+          style={{
+            animation: "prepper-spin 0.9s linear infinite",
+            border: "2px solid #e5e5ea",
+            borderTopColor: "var(--warm)",
+            borderRadius: "50%",
+            flexShrink: 0,
+            height: 18,
+            marginTop: 2,
+            width: 18,
+          }}
+        />
+        <div>
+          <div style={{ color: "#1d1d1f", fontSize: 14, fontWeight: 700 }}>
+            링크를 분석하고 있어요
+          </div>
+          <div style={{ color: "#6e6e73", fontSize: 13, lineHeight: 1.5, marginTop: 3 }}>
+            설명란, 자막, 본문에서 재료와 조리 단계를 찾는 중입니다.
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "grid", gap: 7 }}>
+        {["원본 링크 읽기", "재료 후보 찾기", "조리 단계 정리하기"].map((label) => (
+          <div
+            key={label}
+            style={{ alignItems: "center", color: "#86868b", display: "flex", fontSize: 12.5, gap: 8 }}
+          >
+            <span
+              style={{
+                background: "var(--warm)",
+                borderRadius: "50%",
+                height: 6,
+                opacity: 0.75,
+                width: 6,
+              }}
+            />
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SourceUrlInput({ defaultValue }: { defaultValue?: string }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <input
+      autoFocus
+      defaultValue={defaultValue ?? ""}
+      disabled={pending}
+      id="modal-source-url"
+      name="sourceUrl"
+      placeholder="https://www.youtube.com/watch?v=..."
+      style={{
+        background: pending ? "#f5f5f7" : "#fff",
+        border: "1px solid #d8d8de",
+        borderRadius: 13,
+        color: "#1d1d1f",
+        fontFamily: "inherit",
+        fontSize: 15,
+        height: 50,
+        outline: "none",
+        padding: "0 14px",
+      }}
+    />
+  );
+}
+
 function AddRecipeDialog({ onClose }: { onClose: () => void }) {
   const [state, formAction] = useActionState(
     startRecipeImportFromModalAction,
@@ -152,22 +242,8 @@ function AddRecipeDialog({ onClose }: { onClose: () => void }) {
           >
             레시피 URL
           </label>
-          <input
-            autoFocus
-            defaultValue={state.sourceUrl ?? ""}
-            id="modal-source-url"
-            name="sourceUrl"
-            placeholder="https://www.youtube.com/watch?v=..."
-            style={{
-              border: "1px solid #d8d8de",
-              borderRadius: 13,
-              fontFamily: "inherit",
-              fontSize: 15,
-              height: 50,
-              outline: "none",
-              padding: "0 14px",
-            }}
-          />
+          <SourceUrlInput defaultValue={state.sourceUrl} />
+          <ImportProgress />
           <SubmitButton />
         </form>
       </div>
