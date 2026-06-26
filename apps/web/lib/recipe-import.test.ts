@@ -6,7 +6,7 @@ describe("validateRecipeImportUrl", () => {
     expect(validateRecipeImportUrl("not a url")).toEqual({
       ok: false,
       destination:
-        "/recipes/new?error=%EC%98%AC%EB%B0%94%EB%A5%B8+%EB%A7%81%ED%81%AC%EA%B0%80+%EC%95%84%EB%8B%88%EC%97%90%EC%9A%94&sourceUrl=not+a+url",
+        "/?addRecipe=1&error=%EC%98%AC%EB%B0%94%EB%A5%B8+%EB%A7%81%ED%81%AC%EA%B0%80+%EC%95%84%EB%8B%88%EC%97%90%EC%9A%94&sourceUrl=not+a+url",
     });
   });
 

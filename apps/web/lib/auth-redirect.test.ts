@@ -3,18 +3,18 @@ import { buildAuthCallbackUrl, getSafeNextPath } from "./auth-redirect";
 
 describe("getSafeNextPath", () => {
   it("allows internal app paths", () => {
-    expect(getSafeNextPath("/recipes/new")).toBe("/recipes/new");
+    expect(getSafeNextPath("/?addRecipe=1")).toBe("/?addRecipe=1");
   });
 
   it("falls back for external or missing paths", () => {
-    expect(getSafeNextPath("https://example.com")).toBe("/recipes");
-    expect(getSafeNextPath("//example.com")).toBe("/recipes");
-    expect(getSafeNextPath(null)).toBe("/recipes");
+    expect(getSafeNextPath("https://example.com")).toBe("/");
+    expect(getSafeNextPath("//example.com")).toBe("/");
+    expect(getSafeNextPath(null)).toBe("/");
   });
 
   it("builds an internal auth callback URL with the next path", () => {
-    expect(buildAuthCallbackUrl("http://localhost:3000", "/recipes/new")).toBe(
-      "http://localhost:3000/auth/callback?next=%2Frecipes%2Fnew",
+    expect(buildAuthCallbackUrl("http://localhost:3000", "/?addRecipe=1")).toBe(
+      "http://localhost:3000/auth/callback?next=%2F%3FaddRecipe%3D1",
     );
   });
 });

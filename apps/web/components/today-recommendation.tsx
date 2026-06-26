@@ -24,16 +24,16 @@ export function TodayRecommendation({ recipe }: { recipe: RecipeListItem }) {
           </div>
           <div className="flex shrink-0 gap-2">
             <Link
-              href={`/recipes/${recipe.id}`}
+              href={`/?recipe=${recipe.id}`}
               className="inline-flex h-10 items-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
             >
               열기
             </Link>
             <Link
-              href="/recipes"
+              href="/"
               className="inline-flex h-10 items-center rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              저장함
+              전체 보기
             </Link>
           </div>
         </div>

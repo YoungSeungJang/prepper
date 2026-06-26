@@ -9,7 +9,15 @@ type RecipeImportUrlResult =
     }
   | { ok: false; destination: string };
 
-export function validateRecipeImportUrl(rawUrl: string): RecipeImportUrlResult {
+function buildImportErrorDestination(basePath: string, params: URLSearchParams) {
+  const separator = basePath.includes("?") ? "&" : "?";
+  return `${basePath}${separator}${params.toString()}`;
+}
+
+export function validateRecipeImportUrl(
+  rawUrl: string,
+  errorBasePath = "/?addRecipe=1",
+): RecipeImportUrlResult {
   const validation = validateRecipeUrl(rawUrl);
 
   if (!validation.ok) {
@@ -20,7 +28,7 @@ export function validateRecipeImportUrl(rawUrl: string): RecipeImportUrlResult {
 
     return {
       ok: false,
-      destination: `/recipes/new?${params.toString()}`,
+      destination: buildImportErrorDestination(errorBasePath, params),
     };
   }
 

@@ -16,18 +16,18 @@ import {
 
 export async function startRecipeImportAction(formData: FormData) {
   const nextPathValue = formData.get("nextPath");
-  const nextPath = typeof nextPathValue === "string" ? nextPathValue : "/recipes/new";
+  const nextPath = typeof nextPathValue === "string" ? nextPathValue : "/";
   const user = await requireUser(nextPath);
 
   const sourceUrl = formData.get("sourceUrl");
   const rawUrl = typeof sourceUrl === "string" ? sourceUrl.trim() : "";
-  const result = validateRecipeImportUrl(rawUrl);
+  const result = validateRecipeImportUrl(rawUrl, "/?addRecipe=1");
 
   if (!result.ok) {
     redirect(result.destination);
   }
 
-  let destination = "/recipes";
+  let destination = "/";
   try {
     const draft = await buildImportedRecipeDraft({
       sourceUrl: result.sourceUrl,
@@ -36,7 +36,7 @@ export async function startRecipeImportAction(formData: FormData) {
 
     if (shouldAutoSaveImportedRecipeDraft(draft)) {
       const recipeId = await createRecipe(draft, user.id);
-      destination = `/recipes/${recipeId}`;
+      destination = `/?recipe=${recipeId}`;
     } else {
       const recipeId = await createReviewDraft({
         draft,
@@ -47,7 +47,7 @@ export async function startRecipeImportAction(formData: FormData) {
         parseConfidence: draft.parseConfidence,
         parseWarnings: draft.parseWarnings,
       });
-      destination = `/recipes/${recipeId}/review`;
+      destination = `/?review=${recipeId}`;
     }
   } catch (error) {
     console.error("Failed to create review draft", error);
@@ -55,14 +55,14 @@ export async function startRecipeImportAction(formData: FormData) {
       error: "검토 초안을 만들 수 없습니다. Supabase migration 적용 여부를 확인해 주세요.",
       sourceUrl: rawUrl,
     });
-    redirect(`/recipes/new?${params.toString()}`);
+    redirect(`/?addRecipe=1&${params.toString()}`);
   }
 
   redirect(destination);
 }
 
 export async function saveRecipeAction(formData: FormData) {
-  await requireUser("/recipes/new");
+  await requireUser("/");
   const draftResult = parseRecipeDraftForm(formData);
   const recipeIdValue = formData.get("recipeId");
   const recipeId = typeof recipeIdValue === "string" ? recipeIdValue : "";
@@ -75,12 +75,12 @@ export async function saveRecipeAction(formData: FormData) {
 
   if (!draftResult.ok) {
     reviewUrl.set("error", draftResult.message);
-    redirect(`/recipes/${recipeId || "jeyuk"}/review?${reviewUrl.toString()}`);
+    redirect(`/?review=${recipeId || "jeyuk"}&${reviewUrl.toString()}`);
   }
 
   if (!recipeId) {
     reviewUrl.set("error", "저장할 레시피 초안을 찾을 수 없습니다.");
-    redirect(`/recipes/jeyuk/review?${reviewUrl.toString()}`);
+    redirect(`/?review=jeyuk&${reviewUrl.toString()}`);
   }
 
   try {
@@ -88,8 +88,8 @@ export async function saveRecipeAction(formData: FormData) {
   } catch (error) {
     console.error("Failed to save recipe", error);
     reviewUrl.set("error", "레시피를 저장할 수 없습니다. Supabase migration 적용 여부를 확인해 주세요.");
-    redirect(`/recipes/${recipeId || "jeyuk"}/review?${reviewUrl.toString()}`);
+    redirect(`/?review=${recipeId || "jeyuk"}&${reviewUrl.toString()}`);
   }
 
-  redirect(`/recipes/${recipeId}`);
+  redirect(`/?recipe=${recipeId}`);
 }

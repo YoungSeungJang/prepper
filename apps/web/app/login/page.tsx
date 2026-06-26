@@ -29,17 +29,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <>
             <p className="text-sm font-medium text-slate-500">로그인됨</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-              저장함을 열 수 있습니다
+              홈으로 이동할 수 있습니다
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
               {user.email} 계정으로 로그인되어 있습니다.
             </p>
             <div className="mt-6 grid gap-3">
               <Link
-                href="/recipes"
+                href="/"
                 className="inline-flex h-11 items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-700"
               >
-                저장함으로 이동
+                홈으로 이동
               </Link>
               <form action={signOutAction}>
                 <button
