@@ -14,17 +14,25 @@ import {
   updateRecipeFromDraft,
 } from "@/lib/recipes/queries";
 
-export async function startRecipeImportAction(formData: FormData) {
+export type RecipeImportFormState = {
+  error?: string;
+  sourceUrl?: string;
+};
+
+async function importRecipeFromForm(formData: FormData): Promise<RecipeImportFormState> {
   const nextPathValue = formData.get("nextPath");
   const nextPath = typeof nextPathValue === "string" ? nextPathValue : "/";
   const user = await requireUser(nextPath);
 
   const sourceUrl = formData.get("sourceUrl");
   const rawUrl = typeof sourceUrl === "string" ? sourceUrl.trim() : "";
-  const result = validateRecipeImportUrl(rawUrl, "/?addRecipe=1");
+  const result = validateRecipeImportUrl(rawUrl);
 
   if (!result.ok) {
-    redirect(result.destination);
+    return {
+      error: result.message,
+      sourceUrl: rawUrl,
+    };
   }
 
   let destination = "/";
@@ -51,14 +59,20 @@ export async function startRecipeImportAction(formData: FormData) {
     }
   } catch (error) {
     console.error("Failed to create review draft", error);
-    const params = new URLSearchParams({
+    return {
       error: "검토 초안을 만들 수 없습니다. Supabase migration 적용 여부를 확인해 주세요.",
       sourceUrl: rawUrl,
-    });
-    redirect(`/?addRecipe=1&${params.toString()}`);
+    };
   }
 
   redirect(destination);
+}
+
+export async function startRecipeImportFromModalAction(
+  _previousState: RecipeImportFormState,
+  formData: FormData,
+): Promise<RecipeImportFormState> {
+  return importRecipeFromForm(formData);
 }
 
 export async function saveRecipeAction(formData: FormData) {

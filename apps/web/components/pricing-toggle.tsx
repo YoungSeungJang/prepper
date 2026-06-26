@@ -56,7 +56,7 @@ export function PricingToggle() {
             <span className="text-[44px] font-bold tracking-[-0.03em]">₩0</span>
           </div>
           <Link
-            href="/login?next=%2F%3FaddRecipe%3D1"
+            href="/login"
             className="text-center text-[16px] font-medium text-[#0066cc] bg-white border border-[#0066cc] rounded-full py-3 no-underline mb-7 transition hover:bg-[#f0f6ff]"
           >
             무료로 시작
@@ -82,7 +82,7 @@ export function PricingToggle() {
             <span className="text-[15px] text-[#86868b]">/ {period}</span>
           </div>
           <Link
-            href="/login?next=%2F%3FaddRecipe%3D1"
+            href="/login"
             className="text-center text-[16px] font-medium text-white bg-[#0066cc] rounded-full py-3 no-underline mb-7 transition hover:bg-[#0055aa]"
           >
             프로 시작하기

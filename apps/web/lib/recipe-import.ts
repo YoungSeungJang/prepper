@@ -7,7 +7,7 @@ type RecipeImportUrlResult =
       sourceType: "youtube" | "web";
       youtubeVideoId?: string;
     }
-  | { ok: false; destination: string };
+  | { ok: false; destination: string; message: string; sourceUrl: string };
 
 function buildImportErrorDestination(basePath: string, params: URLSearchParams) {
   const separator = basePath.includes("?") ? "&" : "?";
@@ -16,7 +16,7 @@ function buildImportErrorDestination(basePath: string, params: URLSearchParams) 
 
 export function validateRecipeImportUrl(
   rawUrl: string,
-  errorBasePath = "/?addRecipe=1",
+  errorBasePath = "/",
 ): RecipeImportUrlResult {
   const validation = validateRecipeUrl(rawUrl);
 
@@ -29,6 +29,8 @@ export function validateRecipeImportUrl(
     return {
       ok: false,
       destination: buildImportErrorDestination(errorBasePath, params),
+      message: validation.message,
+      sourceUrl: rawUrl,
     };
   }
 

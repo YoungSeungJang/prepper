@@ -125,7 +125,7 @@ Tailwind v4의 `@import "tailwindcss"` 처리 순서 이슈로, `@theme inline` 
 
 ### 사이드바 상세
 - 배경: `#f5f5f7`, 우측 보더: `#e8e8eb`
-- "링크 추가" 버튼: 오렌지 배경 → `/?addRecipe=1` 모달 오픈
+- "링크 추가" 버튼: 오렌지 배경 → 클라이언트 상태 모달 오픈
 - 컬렉션 활성 항목: 오렌지 배경 (`rgba(199,90,46,0.1)`) + 오렌지 텍스트
 - 유저 아바타: 이메일 첫 글자, 하단 고정
 
@@ -148,7 +148,6 @@ Tailwind v4의 `@import "tailwindcss"` 처리 순서 이슈로, `@theme inline` 
 로그인 후 웹은 홈을 단일 작업 공간으로 사용한다.
 
 - `/`: 비로그인 랜딩 + 로그인 앱 홈
-- `/?addRecipe=1`: 홈 링크 추가 모달
 - `/?recipe=ID`: 홈 우측 상세 패널
 - `/?review=ID`: 홈 빠른 보정 모달
 - `/recipes/[id]`: 호환 redirect → `/?recipe=ID`

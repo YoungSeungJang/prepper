@@ -36,7 +36,7 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
               로그인
             </Link>
             <Link
-              href="/login?next=%2F%3FaddRecipe%3D1"
+              href="/login"
               className="rounded-full px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
               style={{ background: "#0066cc", textDecoration: "none" }}
             >

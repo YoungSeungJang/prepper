@@ -3,7 +3,7 @@ import { buildAuthCallbackUrl, getSafeNextPath } from "./auth-redirect";
 
 describe("getSafeNextPath", () => {
   it("allows internal app paths", () => {
-    expect(getSafeNextPath("/?addRecipe=1")).toBe("/?addRecipe=1");
+    expect(getSafeNextPath("/?recipe=recipe-1")).toBe("/?recipe=recipe-1");
   });
 
   it("falls back for external or missing paths", () => {
@@ -13,8 +13,8 @@ describe("getSafeNextPath", () => {
   });
 
   it("builds an internal auth callback URL with the next path", () => {
-    expect(buildAuthCallbackUrl("http://localhost:3000", "/?addRecipe=1")).toBe(
-      "http://localhost:3000/auth/callback?next=%2F%3FaddRecipe%3D1",
+    expect(buildAuthCallbackUrl("http://localhost:3000", "/?recipe=recipe-1")).toBe(
+      "http://localhost:3000/auth/callback?next=%2F%3Frecipe%3Drecipe-1",
     );
   });
 });

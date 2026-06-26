@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
-import { saveRecipeAction, startRecipeImportAction } from "@/app/recipes/actions";
+import { saveRecipeAction } from "@/app/recipes/actions";
+import { AddRecipeControl } from "@/components/add-recipe-control";
 import { PricingToggle } from "@/components/pricing-toggle";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -64,7 +65,7 @@ function LandingPage() {
             <Link href="/login" style={{ fontSize: 14, color: "#1d1d1f", textDecoration: "none", letterSpacing: "-0.01em" }}>
               로그인
             </Link>
-            <Link href="/login?next=%2F%3FaddRecipe%3D1"
+            <Link href="/login"
               style={{ fontSize: 14, fontWeight: 500, color: "#fff", background: "#0066cc", borderRadius: 9999, padding: "8px 16px", textDecoration: "none", letterSpacing: "-0.01em" }}>
               무료로 시작
             </Link>
@@ -92,7 +93,7 @@ function LandingPage() {
             <span style={{ flex: 1, textAlign: "left", fontSize: 16, color: "#86868b", letterSpacing: "-0.01em", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
               https://youtube.com/watch?v=recipe...
             </span>
-            <Link href="/login?next=%2F%3FaddRecipe%3D1"
+            <Link href="/login"
               style={{ background: "#0066cc", color: "#fff", borderRadius: 9999, padding: "11px 20px", fontSize: 15, fontWeight: 500, textDecoration: "none", flexShrink: 0, letterSpacing: "-0.01em", display: "inline-flex", alignItems: "center" }}>
               정리하기
             </Link>
@@ -307,7 +308,7 @@ function LandingPage() {
         <p style={{ fontSize: 21, lineHeight: 1.5, color: "#a1a1a6", margin: "0 0 38px", letterSpacing: "-0.01em" }}>
           저장만 해둔 레시피부터 꺼내 보세요. 1분이면 정리가 끝납니다.
         </p>
-        <Link href="/login?next=%2F%3FaddRecipe%3D1"
+        <Link href="/login"
           style={{ display: "inline-block", fontSize: 18, fontWeight: 500, color: "#fff", background: "#0066cc", borderRadius: 9999, padding: "15px 34px", textDecoration: "none", letterSpacing: "-0.01em" }}>
           무료로 시작하기
         </Link>
@@ -389,127 +390,6 @@ function RecipeGridCard({
         <div style={{ fontSize: 12.5, color: "#86868b" }}>재료 {recipe.ingredients.length}개 · {recipe.servings}</div>
       </div>
     </Link>
-  );
-}
-
-function AddRecipeModal({
-  error,
-  sourceUrl,
-}: {
-  error?: string;
-  sourceUrl?: string;
-}) {
-  return (
-    <div
-      style={{
-        alignItems: "center",
-        background: "rgba(29,29,31,0.42)",
-        display: "flex",
-        inset: 0,
-        justifyContent: "center",
-        padding: 24,
-        position: "fixed",
-        zIndex: 80,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 22,
-          boxShadow: "0 24px 80px rgba(0,0,0,0.26)",
-          maxWidth: 520,
-          padding: 24,
-          width: "100%",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
-          <div>
-            <div style={{ color: "var(--warm)", fontSize: 13, fontWeight: 700, marginBottom: 7 }}>
-              링크 추가
-            </div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}>
-              레시피 링크를 붙여넣으세요
-            </h2>
-            <p style={{ color: "#6e6e73", fontSize: 14, lineHeight: 1.55, margin: "10px 0 0" }}>
-              YouTube, Shorts, 블로그 링크를 읽어 레시피 카드로 정리합니다.
-            </p>
-          </div>
-          <Link
-            href="/"
-            style={{
-              alignItems: "center",
-              background: "#f5f5f7",
-              borderRadius: 9999,
-              color: "#6e6e73",
-              display: "flex",
-              fontSize: 18,
-              height: 34,
-              justifyContent: "center",
-              textDecoration: "none",
-              width: 34,
-            }}
-          >
-            ×
-          </Link>
-        </div>
-
-        {error ? (
-          <p
-            style={{
-              background: "#fff0f0",
-              border: "1px solid #ffd1d1",
-              borderRadius: 10,
-              color: "#b42318",
-              fontSize: 13,
-              fontWeight: 600,
-              margin: "18px 0 0",
-              padding: "10px 12px",
-            }}
-          >
-            {error}
-          </p>
-        ) : null}
-
-        <form action={startRecipeImportAction} style={{ display: "grid", gap: 12, marginTop: 20 }}>
-          <input name="nextPath" type="hidden" value="/" />
-          <label htmlFor="modal-source-url" style={{ color: "#1d1d1f", fontSize: 13, fontWeight: 600 }}>
-            레시피 URL
-          </label>
-          <input
-            autoFocus
-            id="modal-source-url"
-            name="sourceUrl"
-            defaultValue={sourceUrl ?? ""}
-            placeholder="https://www.youtube.com/watch?v=..."
-            style={{
-              border: "1px solid #d8d8de",
-              borderRadius: 13,
-              fontFamily: "inherit",
-              fontSize: 15,
-              height: 50,
-              outline: "none",
-              padding: "0 14px",
-            }}
-          />
-          <button
-            type="submit"
-            style={{
-              background: "var(--warm)",
-              border: "none",
-              borderRadius: 13,
-              color: "#fff",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              fontSize: 15,
-              fontWeight: 700,
-              height: 50,
-            }}
-          >
-            레시피 카드 만들기
-          </button>
-        </form>
-      </div>
-    </div>
   );
 }
 
@@ -909,10 +789,7 @@ function RecipeReviewModal({
   );
 }
 
-async function AppHome({ addRecipeError, addRecipeSourceUrl, isAddRecipeOpen, recipes, reviewError, reviewRecipeId, selectedRecipeId, user, needsReviewCount }: {
-  addRecipeError?: string;
-  addRecipeSourceUrl?: string;
-  isAddRecipeOpen: boolean;
+async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId, user, needsReviewCount }: {
   reviewError?: string;
   reviewRecipeId?: string;
   selectedRecipeId?: string;
@@ -947,13 +824,12 @@ async function AppHome({ addRecipeError, addRecipeSourceUrl, isAddRecipeOpen, re
           <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: "-0.02em" }}>Prepper</span>
         </Link>
 
-        <Link
-          href="/?addRecipe=1"
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "var(--warm)", color: "#fff", borderRadius: 11, padding: 12, fontSize: 15, fontWeight: 600, textDecoration: "none", marginBottom: 22, letterSpacing: "-0.01em" }}
+        <AddRecipeControl
+          buttonStyle={{ alignItems: "center", justifyContent: "center", gap: 8, background: "var(--warm)", color: "#fff", border: "none", borderRadius: 11, cursor: "pointer", display: "flex", fontFamily: "inherit", padding: 12, fontSize: 15, fontWeight: 600, marginBottom: 22, letterSpacing: "-0.01em" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></svg>
           링크 추가
-        </Link>
+        </AddRecipeControl>
 
         <div style={{ fontSize: 11, fontWeight: 600, color: "#86868b", padding: "0 8px 8px", letterSpacing: "0.02em" }}>컬렉션</div>
         {collections.map((col) => (
@@ -1019,13 +895,12 @@ async function AppHome({ addRecipeError, addRecipeSourceUrl, isAddRecipeOpen, re
               </h1>
               <p style={{ fontSize: 14, color: "#86868b", margin: 0 }}>{recipes.length}개의 레시피</p>
             </div>
-            <Link
-              href="/?addRecipe=1"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--warm)", color: "#fff", borderRadius: 11, padding: "10px 16px", fontSize: 14, fontWeight: 600, textDecoration: "none" }}
+            <AddRecipeControl
+              buttonStyle={{ alignItems: "center", gap: 6, background: "var(--warm)", border: "none", color: "#fff", borderRadius: 11, cursor: "pointer", display: "inline-flex", fontFamily: "inherit", padding: "10px 16px", fontSize: 14, fontWeight: 600 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" /></svg>
               링크 추가
-            </Link>
+            </AddRecipeControl>
           </div>
 
           {recipes.length > 0 ? (
@@ -1055,9 +930,6 @@ async function AppHome({ addRecipeError, addRecipeSourceUrl, isAddRecipeOpen, re
           )}
         </div>
       </main>
-      {isAddRecipeOpen ? (
-        <AddRecipeModal error={addRecipeError} sourceUrl={addRecipeSourceUrl} />
-      ) : null}
       {reviewRecipe ? (
         <RecipeReviewModal error={reviewError} recipe={reviewRecipe} />
       ) : null}
@@ -1100,9 +972,6 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <AppHome
-      addRecipeError={getSearchParam(params, "error")}
-      addRecipeSourceUrl={getSearchParam(params, "sourceUrl")}
-      isAddRecipeOpen={getSearchParam(params, "addRecipe") === "1"}
       needsReviewCount={needsReviewCount}
       recipes={recipes}
       reviewError={getSearchParam(params, "error")}
