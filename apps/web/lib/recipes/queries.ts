@@ -344,6 +344,19 @@ export async function updateRecipeFromDraft(recipeId: string, draft: RecipeDraft
   }
 }
 
+export async function deleteRecipe(recipeId: string, userId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("recipes")
+    .delete()
+    .eq("id", recipeId)
+    .eq("user_id", userId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export function getFallbackRecipes(): RecipeListItem[] {
   return mockRecipes;
 }

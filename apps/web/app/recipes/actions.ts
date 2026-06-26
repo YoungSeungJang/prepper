@@ -11,6 +11,7 @@ import { validateRecipeImportUrl } from "@/lib/recipe-import";
 import {
   createRecipe,
   createReviewDraft,
+  deleteRecipe,
   findRecipeBySourceUrl,
   updateRecipeFromDraft,
 } from "@/lib/recipes/queries";
@@ -117,4 +118,12 @@ export async function saveRecipeAction(formData: FormData) {
   }
 
   redirect(`/?recipe=${recipeId}`);
+}
+
+export async function deleteRecipeAction(formData: FormData) {
+  const user = await requireUser("/");
+  const recipeId = formData.get("recipeId");
+  if (typeof recipeId !== "string" || !recipeId) return;
+  await deleteRecipe(recipeId, user.id);
+  redirect("/");
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
 import { AddRecipeControl } from "@/components/add-recipe-control";
 import { PricingToggle } from "@/components/pricing-toggle";
+import { RecipeGridCard } from "@/components/recipe-grid-card";
 import { RecipeReviewFunnel } from "@/components/recipe-review-funnel";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -351,47 +352,6 @@ function LandingPage() {
 /* ══════════════════════════════════════════════════════════
    LOGGED-IN APP
 ══════════════════════════════════════════════════════════ */
-function RecipeGridCard({
-  isSelected = false,
-  recipe,
-}: {
-  isSelected?: boolean;
-  recipe: RecipeListItem;
-}) {
-  const grad = gradientForSource(recipe.sourceType);
-  const src = sourceLabel(recipe.sourceType);
-
-  return (
-    <Link
-      href={recipe.status === "needs_review" ? `/?review=${recipe.id}` : `/?recipe=${recipe.id}`}
-      style={{
-        border: isSelected ? "2px solid var(--warm)" : "1px solid #ececef",
-        borderRadius: 16,
-        overflow: "hidden",
-        background: "#fff",
-        textDecoration: "none",
-        color: "inherit",
-        display: "block",
-        transition: "border-color .15s ease, transform .15s ease",
-      }}
-    >
-      <div style={{ background: grad, height: 150, position: "relative" }}>
-        <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 11, fontWeight: 600, borderRadius: 6, padding: "4px 8px" }}>
-          {src}
-        </span>
-        {recipe.status === "needs_review" && (
-          <span style={{ position: "absolute", top: 10, right: 10, background: "#febc2e", color: "#1d1d1f", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "4px 8px" }}>
-            확인 필요
-          </span>
-        )}
-      </div>
-      <div style={{ padding: "14px 15px 16px" }}>
-        <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", marginBottom: 5 }}>{recipe.title}</div>
-        <div style={{ fontSize: 12.5, color: "#86868b" }}>재료 {recipe.ingredients.length}개 · {recipe.servings}</div>
-      </div>
-    </Link>
-  );
-}
 
 function RecipeDetailPanel({ recipe }: { recipe: RecipeListItem }) {
   const source = sourceLabel(recipe.sourceType);

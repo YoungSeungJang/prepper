@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { deleteRecipeAction } from "@/app/recipes/actions";
-import { getRecipeHref } from "@/lib/recipe-status";
 import type { RecipeListItem } from "@/lib/recipes/types";
 
 function gradientForSource(sourceType: string) {
@@ -11,11 +10,22 @@ function gradientForSource(sourceType: string) {
   return "linear-gradient(135deg,#A7C497,#6E9A5B)";
 }
 
-export function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
+function sourceLabel(sourceType: string) {
+  return sourceType === "youtube" ? "YouTube" : "블로그";
+}
+
+export function RecipeGridCard({
+  isSelected = false,
+  recipe,
+}: {
+  isSelected?: boolean;
+  recipe: RecipeListItem;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const src = recipe.sourceType === "youtube" ? "YouTube" : "블로그";
   const grad = gradientForSource(recipe.sourceType);
+  const src = sourceLabel(recipe.sourceType);
+  const href = recipe.status === "needs_review" ? `/?review=${recipe.id}` : `/?recipe=${recipe.id}`;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -31,42 +41,31 @@ export function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
   return (
     <div style={{ position: "relative" }}>
       <Link
-        href={getRecipeHref(recipe)}
+        href={href}
         style={{
-          border: "1px solid #ececef",
+          border: isSelected ? "2px solid var(--warm)" : "1px solid #ececef",
           borderRadius: 16,
           overflow: "hidden",
           background: "#fff",
           textDecoration: "none",
           color: "inherit",
           display: "block",
+          transition: "border-color .15s ease, transform .15s ease",
         }}
       >
         <div style={{ background: grad, height: 150, position: "relative" }}>
-          <span style={{
-            position: "absolute", top: 10, left: 10,
-            background: "rgba(0,0,0,0.6)", color: "#fff",
-            fontSize: 11, fontWeight: 600, borderRadius: 6, padding: "4px 8px",
-          }}>
+          <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 11, fontWeight: 600, borderRadius: 6, padding: "4px 8px" }}>
             {src}
           </span>
           {recipe.status === "needs_review" && (
-            <span style={{
-              position: "absolute", bottom: 10, right: 10,
-              background: "#febc2e", color: "#1d1d1f",
-              fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "4px 8px",
-            }}>
+            <span style={{ position: "absolute", bottom: 10, right: 10, background: "#febc2e", color: "#1d1d1f", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "4px 8px" }}>
               확인 필요
             </span>
           )}
         </div>
         <div style={{ padding: "14px 15px 16px" }}>
-          <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", marginBottom: 5, paddingRight: 28 }}>
-            {recipe.title}
-          </div>
-          <div style={{ fontSize: 12.5, color: "#86868b" }}>
-            재료 {recipe.ingredients.length}개 · {recipe.servings}
-          </div>
+          <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", marginBottom: 5, paddingRight: 28 }}>{recipe.title}</div>
+          <div style={{ fontSize: 12.5, color: "#86868b" }}>재료 {recipe.ingredients.length}개 · {recipe.servings}</div>
         </div>
       </Link>
 
