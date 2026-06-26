@@ -25,7 +25,7 @@ export function RecipeGridCard({
   const menuRef = useRef<HTMLDivElement>(null);
   const grad = gradientForSource(recipe.sourceType);
   const src = sourceLabel(recipe.sourceType);
-  const href = recipe.status === "needs_review" ? `/?review=${recipe.id}` : `/?recipe=${recipe.id}`;
+  const href = recipe.status === "needs_review" ? `/?category=pending&review=${recipe.id}` : `/?recipe=${recipe.id}`;
 
   useEffect(() => {
     if (!menuOpen) return;

@@ -4,6 +4,7 @@ import { AddRecipeControl } from "@/components/add-recipe-control";
 import { PricingToggle } from "@/components/pricing-toggle";
 import { RecipeGridCard } from "@/components/recipe-grid-card";
 import { RecipeReviewFunnel } from "@/components/recipe-review-funnel";
+import { RecipeSearchControl } from "@/components/recipe-search-control";
 import { getCurrentUser } from "@/lib/auth";
 import {
   countReviewDrafts,
@@ -487,9 +488,27 @@ function RecipeDetailPanel({ recipe }: { recipe: RecipeListItem }) {
   );
 }
 
-async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId, user, needsReviewCount }: {
+type HomeCategory = "saved" | "pending";
+
+function recipeMatchesQuery(recipe: RecipeListItem, query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const searchableText = [
+    recipe.title,
+    ...recipe.ingredients.map((ingredient) => ingredient.rawText),
+  ].join(" ").toLowerCase();
+
+  return searchableText.includes(normalizedQuery);
+}
+
+async function AppHome({ activeCategory, recipes, reviewError, reviewRecipeId, searchQuery, selectedRecipeId, user, needsReviewCount }: {
+  activeCategory: HomeCategory;
   reviewError?: string;
   reviewRecipeId?: string;
+  searchQuery: string;
   selectedRecipeId?: string;
   user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
   recipes: RecipeListItem[];
@@ -497,18 +516,19 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
 }) {
   const savedRecipes = recipes.filter((recipe) => recipe.status === "saved");
   const reviewDrafts = recipes.filter((recipe) => recipe.status === "needs_review");
+  const visibleSavedRecipes = savedRecipes.filter((recipe) => recipeMatchesQuery(recipe, searchQuery));
+  const visibleReviewDrafts = reviewDrafts.filter((recipe) => recipeMatchesQuery(recipe, searchQuery));
   const selectedRecipe = savedRecipes.find((recipe) => recipe.id === selectedRecipeId);
   const reviewRecipe = reviewDrafts.find((recipe) => recipe.id === reviewRecipeId);
-  const youtubeCount = savedRecipes.filter((r) => r.sourceType === "youtube").length;
-  const webCount = savedRecipes.filter((r) => r.sourceType !== "youtube").length;
-  const savedCount = savedRecipes.length;
+  const isPendingCategory = activeCategory === "pending";
+  const pageTitle = isPendingCategory ? "완성 대기" : "완성된 레시피";
+  const pageDescription = isPendingCategory
+    ? `${visibleReviewDrafts.length}개의 완성 대기 카드`
+    : `${visibleSavedRecipes.length}개의 완성된 레시피`;
 
   const collections = [
-    { label: "전체 레시피", count: savedRecipes.length, active: true },
-    { label: "YouTube", count: youtubeCount, active: false },
-    { label: "블로그 · 웹", count: webCount, active: false },
-    { label: "즐겨찾기", count: savedCount, active: false },
-    { label: "확인 필요", count: needsReviewCount, active: false },
+    { label: "완성된 레시피", count: savedRecipes.length, active: !isPendingCategory, href: "/" },
+    { label: "완성 대기", count: reviewDrafts.length, active: isPendingCategory, href: "/?category=pending" },
   ];
 
   const displayName = user.email?.split("@")[0] ?? "나";
@@ -533,15 +553,16 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
 
         <div style={{ fontSize: 11, fontWeight: 600, color: "#86868b", padding: "0 8px 8px", letterSpacing: "0.02em" }}>컬렉션</div>
         {collections.map((col) => (
-          <div key={col.label} style={{
+          <Link key={col.label} href={col.href} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%",
             borderRadius: 8, padding: "9px 10px", fontSize: 14, fontWeight: col.active ? 600 : 500, marginBottom: 1,
             background: col.active ? "rgba(199,90,46,0.1)" : "transparent",
             color: col.active ? "var(--warm)" : "#1d1d1f",
+            textDecoration: "none",
           }}>
             <span>{col.label}</span>
             <span style={{ fontSize: 12, color: col.active ? "var(--warm)" : "#b0b0b5" }}>{col.count}</span>
-          </div>
+          </Link>
         ))}
 
         <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 10, padding: "10px 8px", borderTop: "1px solid #e8e8eb" }}>
@@ -564,17 +585,15 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
       <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* topbar */}
         <div style={{ height: 64, flexShrink: 0, borderBottom: "1px solid #ececef", display: "flex", alignItems: "center", gap: 16, padding: "0 28px", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9, flex: 1, maxWidth: 420, background: "#f0f0f2", borderRadius: 9999, padding: "9px 16px" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ color: "#86868b", flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-              <path d="M16 16l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span style={{ fontSize: 14, color: "#86868b" }}>레시피·재료·태그 검색</span>
-          </div>
+          <RecipeSearchControl
+            activeCategory={activeCategory}
+            initialQuery={searchQuery}
+            key={`${activeCategory}:${searchQuery}`}
+          />
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
             {needsReviewCount > 0 && (
               <Link
-                href="/"
+                href="/?category=pending"
                 style={{ fontSize: 13, fontWeight: 600, color: "#7a5420", background: "#fff0c2", borderRadius: 9999, padding: "6px 12px", textDecoration: "none", border: "1px solid #edd389" }}
               >
                 확인 필요 {needsReviewCount}개
@@ -591,9 +610,9 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 22 }}>
             <div>
               <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", margin: "0 0 4px" }}>
-                전체 레시피
+                {pageTitle}
               </h1>
-              <p style={{ fontSize: 14, color: "#86868b", margin: 0 }}>{savedRecipes.length}개의 완성된 레시피</p>
+              <p style={{ fontSize: 14, color: "#86868b", margin: 0 }}>{pageDescription}</p>
             </div>
             <AddRecipeControl
               buttonStyle={{ alignItems: "center", gap: 6, background: "var(--warm)", border: "none", color: "#fff", borderRadius: 11, cursor: "pointer", display: "inline-flex", fontFamily: "inherit", padding: "10px 16px", fontSize: 14, fontWeight: 600 }}
@@ -603,33 +622,23 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
             </AddRecipeControl>
           </div>
 
-          {reviewDrafts.length > 0 ? (
-            <section style={{ marginBottom: 30 }}>
-              <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                <div>
-                  <h2 style={{ color: "#1d1d1f", fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>
-                    완성 대기
-                  </h2>
-                  <p style={{ color: "#86868b", fontSize: 13, margin: "4px 0 0" }}>
-                    링크 분석은 끝났고, 부족한 정보를 채우면 저장함에 들어갑니다.
-                  </p>
-                </div>
-                <span style={{ background: "#fff8e1", border: "1px solid #f1df9a", borderRadius: 9999, color: "#7a5420", fontSize: 12, fontWeight: 800, padding: "6px 10px" }}>
-                  {reviewDrafts.length}개
-                </span>
-              </div>
+          {isPendingCategory ? (
+            visibleReviewDrafts.length > 0 ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 18 }}>
-                {reviewDrafts.map((recipe) => (
+                {visibleReviewDrafts.map((recipe) => (
                   <RecipeGridCard key={recipe.id} recipe={recipe} />
                 ))}
               </div>
-            </section>
-          ) : null}
-
-          {savedRecipes.length > 0 ? (
-            <section>
+            ) : (
+              <div style={{ textAlign: "center", padding: "80px 20px", color: "#86868b" }}>
+                <div style={{ fontSize: 17, fontWeight: 600, color: "#1d1d1f", marginBottom: 6 }}>{searchQuery ? "검색 결과가 없어요" : "완성 대기 카드가 없어요"}</div>
+                <div style={{ fontSize: 14 }}>{searchQuery ? "다른 레시피명이나 재료명으로 검색해보세요." : "정보가 부족한 링크를 추가하면 여기에서 이어서 완성할 수 있습니다."}</div>
+              </div>
+            )
+          ) : visibleSavedRecipes.length > 0 ? (
+            <>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 18 }}>
-                {savedRecipes.map((recipe) => (
+                {visibleSavedRecipes.map((recipe) => (
                   <RecipeGridCard
                     isSelected={recipe.id === selectedRecipe?.id}
                     key={recipe.id}
@@ -637,20 +646,18 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
                   />
                 ))}
               </div>
-            </section>
+            </>
           ) : (
             <div style={{ textAlign: "center", padding: "80px 20px", color: "#86868b" }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: "#1d1d1f", marginBottom: 6 }}>아직 저장한 레시피가 없어요</div>
-              <div style={{ fontSize: 14 }}>
-                {reviewDrafts.length > 0 ? "완성 대기 카드의 정보를 채우면 저장함에 표시됩니다." : "위 버튼을 눌러 첫 레시피 링크를 정리해보세요."}
-              </div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "#1d1d1f", marginBottom: 6 }}>{searchQuery ? "검색 결과가 없어요" : "아직 저장한 레시피가 없어요"}</div>
+              <div style={{ fontSize: 14 }}>{searchQuery ? "다른 레시피명이나 재료명으로 검색해보세요." : "위 버튼을 눌러 첫 레시피 링크를 정리해보세요."}</div>
             </div>
           )}
         </div>
       </main>
       {selectedRecipe ? <RecipeDetailPanel recipe={selectedRecipe} /> : null}
       {reviewRecipe ? (
-        <RecipeReviewFunnel error={reviewError} recipe={reviewRecipe} />
+        <RecipeReviewFunnel closeHref="/?category=pending" error={reviewError} recipe={reviewRecipe} />
       ) : null}
     </div>
   );
@@ -691,10 +698,12 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <AppHome
+      activeCategory={getSearchParam(params, "category") === "pending" ? "pending" : "saved"}
       needsReviewCount={needsReviewCount}
       recipes={recipes}
       reviewError={getSearchParam(params, "error")}
       reviewRecipeId={getSearchParam(params, "review")}
+      searchQuery={getSearchParam(params, "q")}
       selectedRecipeId={getSearchParam(params, "recipe")}
       user={user}
     />

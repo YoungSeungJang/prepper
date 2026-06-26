@@ -149,9 +149,11 @@ function TextRowInput({
 }
 
 export function RecipeReviewFunnel({
+  closeHref = "/",
   error,
   recipe,
 }: {
+  closeHref?: string;
   error?: string;
   recipe: RecipeListItem;
 }) {
@@ -218,7 +220,7 @@ export function RecipeReviewFunnel({
             </p>
           </div>
           <Link
-            href="/"
+            href={closeHref}
             style={{
               alignItems: "center",
               background: "#f5f5f7",
@@ -500,7 +502,7 @@ export function RecipeReviewFunnel({
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <Link
-                href="/"
+                href={closeHref}
                 style={{
                   alignItems: "center",
                   border: "1px solid #d8d8de",
