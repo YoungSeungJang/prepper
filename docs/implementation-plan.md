@@ -35,7 +35,7 @@
 
 ## 진행 상황
 
-마지막 업데이트: 2026-06-23 (공용 Header/Footer와 Home 톤 통일)
+마지막 업데이트: 2026-06-26 (카드 완성 퍼널과 완성 대기 분리)
 
 | Task | 상태 | 메모 |
 |---|---|---|
@@ -48,6 +48,7 @@
 | UI 리디자인. Home import 중심 구조 | 진행 중 | 음식 대표 이미지를 제거하고 조용한 생산성 앱형으로 전환. 비로그인 Home은 제품 미리보기 중심 Hero, 단일 CTA, 한국어 섹션 라벨, 따뜻한 크림/올리브 팔레트로 2차 정리. 로그인 Home은 설명형 카드에서 링크 입력, 검토 대기, 최근 저장함이 바로 보이는 import workspace로 재구성. Header/Footer를 공용 컴포넌트로 분리하고 비로그인/로그인 화면의 디자인 톤을 통일 |
 | 라우팅 정리. Home 단일 작업공간 | 완료 | `/recipes`, `/recipes/new` 제거. 링크 추가는 URL query가 아니라 클라이언트 상태 모달로 처리. 저장된 레시피 상세는 `/?recipe=ID` 홈 우측 패널에서 표시. 파싱 부족 초안은 `/?review=ID` 홈 빠른 보정 모달에서 처리. `/recipes/[id]`, `/recipes/[id]/review`는 호환 redirect로 유지 |
 | 링크 import 중복 방지 | 완료 / Supabase migration 적용 필요 | 같은 사용자가 동일한 정규화 `source_url`을 다시 저장하려 하면 새 row를 만들지 않고 "이미 저장한 레시피예요" 안내와 저장된 카드 열기 링크를 표시. DB에는 `recipes(user_id, source_url)` unique index migration 추가 |
+| 카드 완성 퍼널 | 진행 중 / UX 수동 확인 필요 | `needs_review` 초안은 일반 저장함 그리드에서 제외하고 Home의 `완성 대기` 섹션으로 분리. 보정 모달은 `제목 → 재료 → 조리순서 → 미리보기` 단계형 퍼널로 변경. 재료/조리순서 input은 값 입력 시 다음 빈 칸이 자동 생성되고 빈 줄은 자동 정리. 부족한 파싱값은 입력값으로 강제 주입하지 않고 참고 후보로만 표시. `나중에 완성하기`로 초안 보관 가능. 최종 저장 전 미리보기에서 제목/재료/조리순서/원본 링크 확인 |
 | Task 5. Supabase Auth 연결 | 구현 완료 / Google·Kakao 수동 설정 확인 | Supabase browser/server client, Google/Kakao OAuth 로그인, 콜백 라우트, 로그아웃, 보호 라우팅 구현. 이메일 링크 로그인은 제거. Kakao/Google provider enable 및 Google redirect URI mismatch 해결 완료 |
 | Task 6. URL 검증 로직 웹 연결 | 구현 완료 / 로그인 세션 수동 확인 필요 | `/recipes/new` submit action, shared URL validation 재사용, 에러 표시, mock review 이동 구현 |
 | Task 7. 수동 레시피 CRUD | 구현 완료 / Supabase migration 적용 후 수동 확인 필요 | 검토 화면 저장 action, recipes/ingredients/recipe_steps insert, 목록/상세 DB 조회 연결 |
@@ -58,6 +59,7 @@
 | Task 8-4 버그픽스. YouTube Shorts URL 파싱 | 완료 | `packages/shared/src/recipes/validation.ts`의 `getYoutubeVideoId`가 `/shorts/VIDEO_ID` 경로를 처리하지 못해 `sourceType = "web"`으로 잘못 분류되던 문제 수정. Shorts도 YouTube API description 수집 경로로 올바르게 처리됨. 테스트 1개 추가 |
 | Task 8-5. YouTube transcript fallback | 완료 / 실 URL 품질 확인 필요 | YouTube description에 재료/조리순서 같은 강한 단서가 부족하면 watch page의 공개 caption track에서 transcript를 가져와 LLM parser 입력에 추가. transcript가 없거나 실패하면 review warning 유지 |
 | Task 8-6. 자동 저장 + 확인 fallback | 완료 / 실 URL 품질 확인 필요 | 제목, 재료 2개 이상, 조리 순서 2개 이상, warning 없음, confidence 0.7 이상이면 바로 `saved`로 저장하고 상세로 이동. 부족한 링크만 `needs_review` 확인 화면으로 이동. 확인 화면은 textarea 대신 항목별 input 편집 UI로 변경 |
+| Task 8-7. 카드 완성 퍼널 UX | 진행 중 / 브라우저 수동 QA 필요 | 기존 한 화면 확인 form을 `RecipeReviewFunnel` 클라이언트 컴포넌트로 분리. 단계별 입력 상태를 유지하고 마지막 미리보기에서만 저장. 서버 저장 파서도 재료/조리순서 최소 1개 validation 추가 |
 | Task 9. 재료별 상품 후보/가격 변동 | 대기 | 기존 mock 가격 힌트에서 방향 변경. 재료를 누르면 Coupang 상품 후보와 상품별 현재가/가격 변동을 보여주는 구조로 설계 예정 |
 
 완료된 검증:

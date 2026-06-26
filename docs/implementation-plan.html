@@ -364,6 +364,7 @@
           <tr><td>8</td><td>구현 완료 / 실 URL 품질 확인 필요</td><td>import/save + review fallback 흐름</td><td>충분하면 바로 저장, 부족하면 review 초안 + YouTube API + transcript fallback + 웹 LLM 파싱</td><td>실제 블로그/유튜브 링크 품질 확인 필요</td></tr>
           <tr><td>UI</td><td>완료</td><td>Home 단일 작업공간 라우팅 정리</td><td><code>/recipes</code>, <code>/recipes/new</code> 제거. 링크 추가는 클라이언트 상태 모달, <code>/?recipe=ID</code> 우측 상세 패널, <code>/?review=ID</code> 빠른 보정 모달</td><td><code>/recipes/[id]</code>, <code>/recipes/[id]/review</code>는 호환 redirect</td></tr>
           <tr><td>DB</td><td>완료 / Supabase migration 적용 필요</td><td>링크 import 중복 방지</td><td>동일 사용자+정규화 <code>source_url</code> 재저장 시 안내 표시, <code>recipes(user_id, source_url)</code> unique index 추가</td><td>중복 저장 시 새 row 생성 방지</td></tr>
+          <tr><td>UX</td><td>진행 중 / 브라우저 수동 QA 필요</td><td>카드 완성 퍼널</td><td><code>needs_review</code>는 완성 대기 섹션으로 분리. <code>제목 → 재료 → 조리순서 → 미리보기</code> 단계형 퍼널, 동적 input, 참고 후보, 최종 미리보기 추가</td><td>미완성 초안은 저장함 그리드에 노출하지 않음</td></tr>
           <tr><td>9</td><td>대기</td><td>mock price hint</td><td>가격 힌트 섹션</td><td>가격 실패가 저장을 막지 않음</td></tr>
           <tr><td>10</td><td>대기</td><td>추천 홈</td><td>추천 카드/empty state</td><td>저장 레시피 추천 표시</td></tr>
           <tr><td>11</td><td>대기</td><td>E2E 테스트</td><td>Playwright 테스트</td><td>핵심 흐름 통과</td></tr>

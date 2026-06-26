@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
-import { saveRecipeAction } from "@/app/recipes/actions";
 import { AddRecipeControl } from "@/components/add-recipe-control";
 import { PricingToggle } from "@/components/pricing-toggle";
+import { RecipeReviewFunnel } from "@/components/recipe-review-funnel";
 import { getCurrentUser } from "@/lib/auth";
 import {
   countReviewDrafts,
@@ -397,394 +397,132 @@ function RecipeDetailPanel({ recipe }: { recipe: RecipeListItem }) {
   const source = sourceLabel(recipe.sourceType);
 
   return (
-    <aside
-      style={{
-        alignSelf: "start",
-        background: "#fff",
-        border: "1px solid #ececef",
-        borderRadius: 18,
-        boxShadow: "0 18px 45px rgba(0,0,0,0.08)",
-        overflow: "hidden",
-        position: "sticky",
-        top: 20,
-      }}
-    >
-      <div style={{ background: gradientForSource(recipe.sourceType), height: 128, position: "relative" }}>
-        <Link
-          href="/"
-          style={{
-            alignItems: "center",
-            background: "rgba(255,255,255,0.88)",
-            borderRadius: 9999,
-            color: "#1d1d1f",
-            display: "flex",
-            fontSize: 18,
-            height: 32,
-            justifyContent: "center",
-            position: "absolute",
-            right: 12,
-            textDecoration: "none",
-            top: 12,
-            width: 32,
-          }}
-        >
-          ×
-        </Link>
-      </div>
-      <div style={{ padding: 20 }}>
-        <div style={{ color: "#86868b", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
-          {source} · 재료 {recipe.ingredients.length}개
-        </div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.2, margin: 0 }}>
-          {recipe.title}
-        </h2>
-        <a
-          href={recipe.sourceUrl}
-          style={{
-            color: "var(--warm)",
-            display: "inline-flex",
-            fontSize: 13,
-            fontWeight: 700,
-            marginTop: 14,
-            textDecoration: "none",
-          }}
-        >
-          원본 보기
-        </a>
-
-        <section style={{ marginTop: 22 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>재료</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {recipe.ingredients.map((ingredient) => (
-              <span
-                key={ingredient.rawText}
-                style={{
-                  background: "#f5f5f7",
-                  borderRadius: 9999,
-                  color: "#1d1d1f",
-                  fontSize: 13,
-                  padding: "7px 11px",
-                }}
-              >
-                {ingredient.rawText}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section style={{ marginTop: 24 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 12px" }}>조리 순서</h3>
-          <ol style={{ display: "grid", gap: 12, listStyle: "none", margin: 0, padding: 0 }}>
-            {recipe.steps.map((step, index) => (
-              <li key={step} style={{ display: "flex", gap: 10, color: "#424245", fontSize: 14, lineHeight: 1.55 }}>
-                <span
-                  style={{
-                    alignItems: "center",
-                    background: "#f0f0f2",
-                    borderRadius: 8,
-                    color: "#6e6e73",
-                    display: "flex",
-                    flexShrink: 0,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    height: 24,
-                    justifyContent: "center",
-                    width: 24,
-                  }}
-                >
-                  {index + 1}
-                </span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
-    </aside>
-  );
-}
-
-function getReviewModalCopy(recipe: RecipeListItem) {
-  const hasIngredients = recipe.ingredients.length >= 2;
-  const hasSteps = recipe.steps.length >= 2;
-
-  if (recipe.sourceType === "youtube" && hasIngredients && !hasSteps) {
-    return {
-      eyebrow: "거의 완성됐어요",
-      title: "재료는 찾았고, 조리 단계만 조금 보정하면 됩니다",
-      description:
-        "영상 설명이나 자막에서 단계가 충분하지 않았어요. 영상을 다시 멈춰보지 않아도 되도록 핵심 단계만 빠르게 채워주세요.",
-    };
-  }
-
-  if (recipe.sourceType === "youtube" && !hasIngredients && !hasSteps) {
-    return {
-      eyebrow: "정보가 부족해요",
-      title: "영상에서 요리 카드에 필요한 텍스트를 충분히 찾지 못했어요",
-      description:
-        "제목과 원본은 저장했지만, 요리할 때 바로 보려면 재료와 단계를 직접 채워야 합니다.",
-    };
-  }
-
-  if (!hasIngredients || !hasSteps) {
-    return {
-      eyebrow: "조금만 보정하면 됩니다",
-      title: "레시피 카드에 부족한 항목이 있어요",
-      description:
-        "찾은 내용은 미리 채워뒀습니다. 비어 있거나 어색한 항목만 고치면 바로 저장할 수 있습니다.",
-    };
-  }
-
-  return {
-    eyebrow: "확인 후 저장",
-    title: "자동 정리된 내용을 확인해 주세요",
-    description:
-      "원문에서 가져온 내용이 애매할 수 있어 저장 전 한 번만 확인합니다.",
-  };
-}
-
-function RecipeReviewModal({
-  error,
-  recipe,
-}: {
-  error?: string;
-  recipe: RecipeListItem;
-}) {
-  const copy = getReviewModalCopy(recipe);
-  const ingredientRows = [
-    ...recipe.ingredients.map((ingredient) => ingredient.rawText),
-    "",
-    "",
-  ];
-  const stepRows = [...recipe.steps, "", "", ""];
-
-  return (
     <div
       style={{
-        alignItems: "center",
-        background: "rgba(29,29,31,0.42)",
-        display: "flex",
         inset: 0,
-        justifyContent: "center",
-        padding: 24,
         position: "fixed",
-        zIndex: 90,
+        zIndex: 70,
       }}
     >
-      <div
+      <Link
+        aria-label="레시피 상세 닫기"
+        href="/"
+        style={{
+          background: "rgba(29,29,31,0.42)",
+          display: "block",
+          inset: 0,
+          position: "absolute",
+          textDecoration: "none",
+        }}
+      />
+      <aside
         style={{
           background: "#fff",
-          borderRadius: 24,
-          boxShadow: "0 24px 80px rgba(0,0,0,0.26)",
-          maxHeight: "calc(100vh - 48px)",
-          maxWidth: 760,
-          overflowY: "auto",
-          padding: 26,
-          width: "100%",
+          boxShadow: "-24px 0 80px rgba(0,0,0,0.22)",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          maxWidth: "min(600px, calc(100vw - 32px))",
+          overflow: "hidden",
+          position: "absolute",
+          right: 0,
+          top: 0,
+          width: 580,
         }}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 18 }}>
-          <div>
-            <div style={{ color: "var(--warm)", fontSize: 13, fontWeight: 800, marginBottom: 7 }}>
-              {copy.eyebrow}
-            </div>
-            <h2 style={{ fontSize: 26, fontWeight: 750, letterSpacing: "-0.035em", lineHeight: 1.16, margin: 0 }}>
-              {copy.title}
-            </h2>
-            <p style={{ color: "#6e6e73", fontSize: 14, lineHeight: 1.6, margin: "12px 0 0", maxWidth: 600 }}>
-              {copy.description}
-            </p>
-          </div>
+        <div style={{ background: gradientForSource(recipe.sourceType), flexShrink: 0, height: 148, position: "relative" }}>
           <Link
             href="/"
             style={{
               alignItems: "center",
-              background: "#f5f5f7",
+              background: "rgba(255,255,255,0.9)",
               borderRadius: 9999,
-              color: "#6e6e73",
+              color: "#1d1d1f",
               display: "flex",
-              flexShrink: 0,
               fontSize: 18,
               height: 34,
               justifyContent: "center",
+              position: "absolute",
+              right: 16,
               textDecoration: "none",
+              top: 16,
               width: 34,
             }}
           >
             ×
           </Link>
         </div>
-
-        <div
-          style={{
-            background: "#f5f5f7",
-            borderRadius: 14,
-            color: "#424245",
-            display: "flex",
-            flexWrap: "wrap",
-            fontSize: 13,
-            gap: 8,
-            marginTop: 18,
-            padding: 12,
-          }}
-        >
-          <span>{sourceLabel(recipe.sourceType)}</span>
-          <span>·</span>
-          <span>재료 {recipe.ingredients.length}개</span>
-          <span>·</span>
-          <span>단계 {recipe.steps.length}개</span>
-        </div>
-
-        {error ? (
-          <p
+        <div style={{ overflowY: "auto", padding: "22px 22px 28px" }}>
+          <div style={{ color: "#86868b", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+            {source} · 재료 {recipe.ingredients.length}개
+          </div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.18, margin: 0 }}>
+            {recipe.title}
+          </h2>
+          <a
+            href={recipe.sourceUrl}
             style={{
-              background: "#fff0f0",
-              border: "1px solid #ffd1d1",
-              borderRadius: 10,
-              color: "#b42318",
+              color: "var(--warm)",
+              display: "inline-flex",
               fontSize: 13,
-              fontWeight: 600,
-              margin: "16px 0 0",
-              padding: "10px 12px",
-            }}
-          >
-            {error}
-          </p>
-        ) : null}
-
-        {recipe.warnings?.length ? (
-          <div
-            style={{
-              background: "#fff8e1",
-              border: "1px solid #f1df9a",
-              borderRadius: 12,
-              color: "#7a5420",
-              fontSize: 13,
-              lineHeight: 1.55,
+              fontWeight: 700,
               marginTop: 14,
-              padding: 12,
+              textDecoration: "none",
             }}
           >
-            {recipe.warnings.slice(0, 2).map((warning) => (
-              <div key={warning}>{warning}</div>
-            ))}
-          </div>
-        ) : null}
+            원본 보기
+          </a>
 
-        <form action={saveRecipeAction} style={{ display: "grid", gap: 18, marginTop: 22 }}>
-          <input name="recipeId" type="hidden" value={recipe.id} />
-          <input name="sourceType" type="hidden" value={recipe.sourceType} />
-          <input name="sourceUrl" type="hidden" value={recipe.sourceUrl} />
-          <input name="servings" type="hidden" value={recipe.servings} />
-
-          <label style={{ display: "grid", gap: 8, fontSize: 13, fontWeight: 700 }}>
-            제목
-            <input
-              name="title"
-              defaultValue={recipe.title}
-              style={{
-                border: "1px solid #d8d8de",
-                borderRadius: 12,
-                fontFamily: "inherit",
-                fontSize: 15,
-                height: 46,
-                padding: "0 13px",
-              }}
-            />
-          </label>
-
-          <fieldset style={{ border: "none", display: "grid", gap: 10, margin: 0, padding: 0 }}>
-            <legend style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>재료</legend>
-            {ingredientRows.map((rawText, index) => (
-              <div
-                key={`review-ingredient-${index}`}
-                style={{ display: "grid", gap: 8, gridTemplateColumns: "30px minmax(0,1fr)", alignItems: "center" }}
-              >
-                <span style={{ color: "#86868b", fontSize: 12, fontWeight: 700, textAlign: "center" }}>
-                  {index + 1}
-                </span>
-                <input
-                  name="ingredients"
-                  defaultValue={rawText}
-                  placeholder="재료 추가"
+          <section style={{ marginTop: 24 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>재료</h3>
+            <ul style={{ display: "grid", gap: 8, listStyle: "none", margin: 0, padding: 0 }}>
+              {recipe.ingredients.map((ingredient) => (
+                <li
+                  key={ingredient.rawText}
                   style={{
-                    border: "1px solid #d8d8de",
-                    borderRadius: 12,
-                    fontFamily: "inherit",
-                    fontSize: 14,
-                    height: 42,
-                    padding: "0 12px",
+                    background: "#f5f5f7",
+                    borderRadius: 10,
+                    color: "#1d1d1f",
+                    fontSize: 13,
+                    lineHeight: 1.45,
+                    padding: "10px 12px",
                   }}
-                />
-              </div>
-            ))}
-          </fieldset>
+                >
+                  {ingredient.rawText}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-          <fieldset style={{ border: "none", display: "grid", gap: 10, margin: 0, padding: 0 }}>
-            <legend style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>조리 단계</legend>
-            {stepRows.map((body, index) => (
-              <div
-                key={`review-step-${index}`}
-                style={{ display: "grid", gap: 8, gridTemplateColumns: "30px minmax(0,1fr)", alignItems: "center" }}
-              >
-                <span style={{ color: "#86868b", fontSize: 12, fontWeight: 700, textAlign: "center" }}>
-                  {index + 1}
-                </span>
-                <input
-                  name="steps"
-                  defaultValue={body}
-                  placeholder="조리 단계 추가"
-                  style={{
-                    border: "1px solid #d8d8de",
-                    borderRadius: 12,
-                    fontFamily: "inherit",
-                    fontSize: 14,
-                    height: 42,
-                    padding: "0 12px",
-                  }}
-                />
-              </div>
-            ))}
-          </fieldset>
-
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <Link
-              href="/"
-              style={{
-                alignItems: "center",
-                border: "1px solid #d8d8de",
-                borderRadius: 12,
-                color: "#424245",
-                display: "inline-flex",
-                fontSize: 14,
-                fontWeight: 700,
-                height: 44,
-                padding: "0 16px",
-                textDecoration: "none",
-              }}
-            >
-              나중에 하기
-            </Link>
-            <button
-              type="submit"
-              style={{
-                background: "var(--warm)",
-                border: "none",
-                borderRadius: 12,
-                color: "#fff",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                fontSize: 14,
-                fontWeight: 800,
-                height: 44,
-                padding: "0 18px",
-              }}
-            >
-              카드 저장
-            </button>
-          </div>
-        </form>
-      </div>
+          <section style={{ marginTop: 26 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 12px" }}>조리 순서</h3>
+            <ol style={{ display: "grid", gap: 12, listStyle: "none", margin: 0, padding: 0 }}>
+              {recipe.steps.map((step, index) => (
+                <li key={step} style={{ display: "flex", gap: 10, color: "#424245", fontSize: 14, lineHeight: 1.55 }}>
+                  <span
+                    style={{
+                      alignItems: "center",
+                      background: "#f0f0f2",
+                      borderRadius: 8,
+                      color: "#6e6e73",
+                      display: "flex",
+                      flexShrink: 0,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      height: 24,
+                      justifyContent: "center",
+                      width: 24,
+                    }}
+                  >
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -797,14 +535,16 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
   recipes: RecipeListItem[];
   needsReviewCount: number;
 }) {
-  const selectedRecipe = recipes.find((recipe) => recipe.id === selectedRecipeId && recipe.status === "saved");
-  const reviewRecipe = recipes.find((recipe) => recipe.id === reviewRecipeId && recipe.status === "needs_review");
-  const youtubeCount = recipes.filter((r) => r.sourceType === "youtube").length;
-  const webCount = recipes.filter((r) => r.sourceType !== "youtube").length;
-  const savedCount = recipes.filter((r) => r.status === "saved").length;
+  const savedRecipes = recipes.filter((recipe) => recipe.status === "saved");
+  const reviewDrafts = recipes.filter((recipe) => recipe.status === "needs_review");
+  const selectedRecipe = savedRecipes.find((recipe) => recipe.id === selectedRecipeId);
+  const reviewRecipe = reviewDrafts.find((recipe) => recipe.id === reviewRecipeId);
+  const youtubeCount = savedRecipes.filter((r) => r.sourceType === "youtube").length;
+  const webCount = savedRecipes.filter((r) => r.sourceType !== "youtube").length;
+  const savedCount = savedRecipes.length;
 
   const collections = [
-    { label: "전체 레시피", count: recipes.length, active: true },
+    { label: "전체 레시피", count: savedRecipes.length, active: true },
     { label: "YouTube", count: youtubeCount, active: false },
     { label: "블로그 · 웹", count: webCount, active: false },
     { label: "즐겨찾기", count: savedCount, active: false },
@@ -850,7 +590,7 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
           </span>
           <div style={{ flex: 1, lineHeight: 1.2, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
-            <div style={{ fontSize: 11, color: "#86868b" }}>무료 플랜 · {recipes.length}/50</div>
+            <div style={{ fontSize: 11, color: "#86868b" }}>무료 플랜 · {savedRecipes.length}/50</div>
           </div>
           <form action={signOutAction}>
             <button type="submit" style={{ background: "transparent", border: "none", cursor: "pointer", padding: "4px 6px", fontSize: 12, color: "#86868b", fontFamily: "inherit" }}>
@@ -893,7 +633,7 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
               <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", margin: "0 0 4px" }}>
                 전체 레시피
               </h1>
-              <p style={{ fontSize: 14, color: "#86868b", margin: 0 }}>{recipes.length}개의 레시피</p>
+              <p style={{ fontSize: 14, color: "#86868b", margin: 0 }}>{savedRecipes.length}개의 완성된 레시피</p>
             </div>
             <AddRecipeControl
               buttonStyle={{ alignItems: "center", gap: 6, background: "var(--warm)", border: "none", color: "#fff", borderRadius: 11, cursor: "pointer", display: "inline-flex", fontFamily: "inherit", padding: "10px 16px", fontSize: 14, fontWeight: 600 }}
@@ -903,16 +643,33 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
             </AddRecipeControl>
           </div>
 
-          {recipes.length > 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gap: 22,
-                gridTemplateColumns: selectedRecipe ? "minmax(0,1fr) 390px" : "1fr",
-              }}
-            >
+          {reviewDrafts.length > 0 ? (
+            <section style={{ marginBottom: 30 }}>
+              <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                <div>
+                  <h2 style={{ color: "#1d1d1f", fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>
+                    완성 대기
+                  </h2>
+                  <p style={{ color: "#86868b", fontSize: 13, margin: "4px 0 0" }}>
+                    링크 분석은 끝났고, 부족한 정보를 채우면 저장함에 들어갑니다.
+                  </p>
+                </div>
+                <span style={{ background: "#fff8e1", border: "1px solid #f1df9a", borderRadius: 9999, color: "#7a5420", fontSize: 12, fontWeight: 800, padding: "6px 10px" }}>
+                  {reviewDrafts.length}개
+                </span>
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 18 }}>
-                {recipes.map((recipe) => (
+                {reviewDrafts.map((recipe) => (
+                  <RecipeGridCard key={recipe.id} recipe={recipe} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {savedRecipes.length > 0 ? (
+            <section>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 18 }}>
+                {savedRecipes.map((recipe) => (
                   <RecipeGridCard
                     isSelected={recipe.id === selectedRecipe?.id}
                     key={recipe.id}
@@ -920,18 +677,20 @@ async function AppHome({ recipes, reviewError, reviewRecipeId, selectedRecipeId,
                   />
                 ))}
               </div>
-              {selectedRecipe ? <RecipeDetailPanel recipe={selectedRecipe} /> : null}
-            </div>
+            </section>
           ) : (
             <div style={{ textAlign: "center", padding: "80px 20px", color: "#86868b" }}>
               <div style={{ fontSize: 17, fontWeight: 600, color: "#1d1d1f", marginBottom: 6 }}>아직 저장한 레시피가 없어요</div>
-              <div style={{ fontSize: 14 }}>위 버튼을 눌러 첫 레시피 링크를 정리해보세요.</div>
+              <div style={{ fontSize: 14 }}>
+                {reviewDrafts.length > 0 ? "완성 대기 카드의 정보를 채우면 저장함에 표시됩니다." : "위 버튼을 눌러 첫 레시피 링크를 정리해보세요."}
+              </div>
             </div>
           )}
         </div>
       </main>
+      {selectedRecipe ? <RecipeDetailPanel recipe={selectedRecipe} /> : null}
       {reviewRecipe ? (
-        <RecipeReviewModal error={reviewError} recipe={reviewRecipe} />
+        <RecipeReviewFunnel error={reviewError} recipe={reviewRecipe} />
       ) : null}
     </div>
   );

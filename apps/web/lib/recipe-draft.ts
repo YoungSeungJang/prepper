@@ -40,7 +40,7 @@ function getSourceType(value: string): SourceType {
 
 export function parseRecipeDraftForm(formData: FormData): DraftFormResult {
   const sourceUrl = getFormString(formData, "sourceUrl");
-  const title = getFormString(formData, "title");
+  const title = getFormString(formData, "title") || getFormString(formData, "fallbackTitle");
 
   if (!title || !sourceUrl) {
     return { ok: false, message: "제목과 원본 링크를 확인해 주세요." };
@@ -54,6 +54,14 @@ export function parseRecipeDraftForm(formData: FormData): DraftFormResult {
     position: index + 1,
     body,
   }));
+
+  if (ingredients.length === 0) {
+    return { ok: false, message: "재료를 최소 1개 입력해 주세요." };
+  }
+
+  if (steps.length === 0) {
+    return { ok: false, message: "조리순서를 최소 1개 입력해 주세요." };
+  }
 
   return {
     ok: true,
