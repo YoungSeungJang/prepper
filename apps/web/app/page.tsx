@@ -5,9 +5,9 @@ import { PricingToggle } from "@/components/pricing-toggle";
 import { RecipeGridCard } from "@/components/recipe-grid-card";
 import { RecipeReviewFunnel } from "@/components/recipe-review-funnel";
 import { RecipeSearchControl } from "@/components/recipe-search-control";
+import { RecipeSortControl } from "@/components/recipe-sort-control";
 import { getCurrentUser } from "@/lib/auth";
 import {
-  countReviewDrafts,
   listReviewDrafts,
   listSavedRecipes,
 } from "@/lib/recipes/queries";
@@ -489,6 +489,7 @@ function RecipeDetailPanel({ recipe }: { recipe: RecipeListItem }) {
 }
 
 type HomeCategory = "saved" | "pending";
+type RecipeSort = "newest" | "oldest" | "title";
 
 function recipeMatchesQuery(recipe: RecipeListItem, query: string) {
   const normalizedQuery = query.trim().toLowerCase();
@@ -504,20 +505,34 @@ function recipeMatchesQuery(recipe: RecipeListItem, query: string) {
   return searchableText.includes(normalizedQuery);
 }
 
-async function AppHome({ activeCategory, recipes, reviewError, reviewRecipeId, searchQuery, selectedRecipeId, user, needsReviewCount }: {
+function sortRecipes(recipes: RecipeListItem[], sort: RecipeSort) {
+  return [...recipes].sort((left, right) => {
+    if (sort === "oldest") {
+      return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+    }
+
+    if (sort === "title") {
+      return left.title.localeCompare(right.title, "ko");
+    }
+
+    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+  });
+}
+
+async function AppHome({ activeCategory, recipes, reviewError, reviewRecipeId, searchQuery, selectedRecipeId, sort, user }: {
   activeCategory: HomeCategory;
   reviewError?: string;
   reviewRecipeId?: string;
   searchQuery: string;
   selectedRecipeId?: string;
+  sort: RecipeSort;
   user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
   recipes: RecipeListItem[];
-  needsReviewCount: number;
 }) {
   const savedRecipes = recipes.filter((recipe) => recipe.status === "saved");
   const reviewDrafts = recipes.filter((recipe) => recipe.status === "needs_review");
-  const visibleSavedRecipes = savedRecipes.filter((recipe) => recipeMatchesQuery(recipe, searchQuery));
-  const visibleReviewDrafts = reviewDrafts.filter((recipe) => recipeMatchesQuery(recipe, searchQuery));
+  const visibleSavedRecipes = sortRecipes(savedRecipes.filter((recipe) => recipeMatchesQuery(recipe, searchQuery)), sort);
+  const visibleReviewDrafts = sortRecipes(reviewDrafts.filter((recipe) => recipeMatchesQuery(recipe, searchQuery)), sort);
   const selectedRecipe = savedRecipes.find((recipe) => recipe.id === selectedRecipeId);
   const reviewRecipe = reviewDrafts.find((recipe) => recipe.id === reviewRecipeId);
   const isPendingCategory = activeCategory === "pending";
@@ -590,19 +605,6 @@ async function AppHome({ activeCategory, recipes, reviewError, reviewRecipeId, s
             initialQuery={searchQuery}
             key={`${activeCategory}:${searchQuery}`}
           />
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
-            {needsReviewCount > 0 && (
-              <Link
-                href="/?category=pending"
-                style={{ fontSize: 13, fontWeight: 600, color: "#7a5420", background: "#fff0c2", borderRadius: 9999, padding: "6px 12px", textDecoration: "none", border: "1px solid #edd389" }}
-              >
-                확인 필요 {needsReviewCount}개
-              </Link>
-            )}
-            <span style={{ width: 34, height: 34, borderRadius: "50%", background: "#5B7F9A", color: "#fff", fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {abbr}
-            </span>
-          </div>
         </div>
 
         {/* content */}
@@ -614,12 +616,7 @@ async function AppHome({ activeCategory, recipes, reviewError, reviewRecipeId, s
               </h1>
               <p style={{ fontSize: 14, color: "#86868b", margin: 0 }}>{pageDescription}</p>
             </div>
-            <AddRecipeControl
-              buttonStyle={{ alignItems: "center", gap: 6, background: "var(--warm)", border: "none", color: "#fff", borderRadius: 11, cursor: "pointer", display: "inline-flex", fontFamily: "inherit", padding: "10px 16px", fontSize: 14, fontWeight: 600 }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" /></svg>
-              링크 추가
-            </AddRecipeControl>
+            <RecipeSortControl activeCategory={activeCategory} searchQuery={searchQuery} sort={sort} />
           </div>
 
           {isPendingCategory ? (
@@ -678,6 +675,14 @@ function getSearchParam(
   return typeof value === "string" ? value : "";
 }
 
+function getRecipeSort(value: string): RecipeSort {
+  if (value === "oldest" || value === "title") {
+    return value;
+  }
+
+  return "newest";
+}
+
 export default async function Home({ searchParams }: HomeProps) {
   const user = await getCurrentUser();
   const params = await searchParams;
@@ -686,10 +691,9 @@ export default async function Home({ searchParams }: HomeProps) {
     return <LandingPage />;
   }
 
-  const [savedRecipes, reviewDrafts, needsReviewCount] = await Promise.all([
+  const [savedRecipes, reviewDrafts] = await Promise.all([
     listSavedRecipes(),
     listReviewDrafts(),
-    countReviewDrafts(),
   ]);
   const recipes = [...savedRecipes, ...reviewDrafts].sort(
     (left, right) =>
@@ -699,12 +703,12 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <AppHome
       activeCategory={getSearchParam(params, "category") === "pending" ? "pending" : "saved"}
-      needsReviewCount={needsReviewCount}
       recipes={recipes}
       reviewError={getSearchParam(params, "error")}
       reviewRecipeId={getSearchParam(params, "review")}
       searchQuery={getSearchParam(params, "q")}
       selectedRecipeId={getSearchParam(params, "recipe")}
+      sort={getRecipeSort(getSearchParam(params, "sort"))}
       user={user}
     />
   );
