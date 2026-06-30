@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function RecipeSearchControl({
   activeCategory,
@@ -11,33 +11,39 @@ export function RecipeSearchControl({
   initialQuery: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
-  const didMount = useRef(false);
+  const lastSyncedQuery = useRef(initialQuery);
 
   useEffect(() => {
-    if (!didMount.current) {
-      didMount.current = true;
+    const trimmed = query.trim();
+
+    if (trimmed === lastSyncedQuery.current) {
       return;
     }
 
     const handle = window.setTimeout(() => {
-      const params = new URLSearchParams();
-      const trimmed = query.trim();
+      const params = new URLSearchParams(searchParams.toString());
 
       if (activeCategory === "pending") {
         params.set("category", "pending");
+      } else {
+        params.delete("category");
       }
 
       if (trimmed) {
         params.set("q", trimmed);
+      } else {
+        params.delete("q");
       }
 
+      lastSyncedQuery.current = trimmed;
       const nextPath = params.toString() ? `/?${params.toString()}` : "/";
       router.replace(nextPath, { scroll: false });
     }, 300);
 
     return () => window.clearTimeout(handle);
-  }, [activeCategory, query, router]);
+  }, [activeCategory, query, router, searchParams]);
 
   return (
     <div style={{ alignItems: "center", display: "flex", gap: 9, flex: 1, maxWidth: 420, background: "#f0f0f2", borderRadius: 9999, padding: "9px 16px" }}>

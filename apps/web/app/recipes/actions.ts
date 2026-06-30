@@ -67,7 +67,7 @@ async function importRecipeFromForm(formData: FormData): Promise<RecipeImportFor
         parseConfidence: draft.parseConfidence,
         parseWarnings: draft.parseWarnings,
       });
-      destination = `/?review=${recipeId}`;
+      destination = `/?category=pending&review=${recipeId}`;
     }
   } catch (error) {
     console.error("Failed to create review draft", error);
@@ -101,12 +101,12 @@ export async function saveRecipeAction(formData: FormData) {
 
   if (!draftResult.ok) {
     reviewUrl.set("error", draftResult.message);
-    redirect(`/?review=${recipeId || "jeyuk"}&${reviewUrl.toString()}`);
+    redirect(`/?category=pending&review=${recipeId || "jeyuk"}&${reviewUrl.toString()}`);
   }
 
   if (!recipeId) {
     reviewUrl.set("error", "저장할 레시피 초안을 찾을 수 없습니다.");
-    redirect(`/?review=jeyuk&${reviewUrl.toString()}`);
+    redirect(`/?category=pending&review=jeyuk&${reviewUrl.toString()}`);
   }
 
   try {
@@ -114,7 +114,7 @@ export async function saveRecipeAction(formData: FormData) {
   } catch (error) {
     console.error("Failed to save recipe", error);
     reviewUrl.set("error", "레시피를 저장할 수 없습니다. Supabase migration 적용 여부를 확인해 주세요.");
-    redirect(`/?review=${recipeId || "jeyuk"}&${reviewUrl.toString()}`);
+    redirect(`/?category=pending&review=${recipeId || "jeyuk"}&${reviewUrl.toString()}`);
   }
 
   redirect(`/?recipe=${recipeId}`);

@@ -6,5 +6,5 @@ export default async function ReviewRecipeRedirectPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  redirect(`/?review=${encodeURIComponent(id)}`);
+  redirect(`/?category=pending&review=${encodeURIComponent(id)}`);
 }
