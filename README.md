@@ -49,6 +49,16 @@ pnpm dev
 
 `http://localhost:3000` 에서 확인
 
+API 서버는 별도 터미널에서 실행합니다.
+
+```bash
+cp apps/api/.env.example apps/api/.env
+# apps/api/.env에 Supabase 값 입력
+pnpm --filter api dev
+```
+
+`http://localhost:4000/health` 에서 확인
+
 ## Docker로 로컬 테스트
 
 ```bash
@@ -72,7 +82,8 @@ git push origin main
 ```
 prepper/
 ├── apps/
-│   └── web/          # Next.js 앱
+│   ├── web/          # Next.js 웹 앱
+│   └── api/          # Express API 서버
 ├── packages/
 │   └── shared/       # 공통 타입 및 유틸
 └── docs/             # 설계 문서
@@ -82,6 +93,18 @@ prepper/
 
 | 변수명 | 설명 |
 |--------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon 키 |
+| `OPENAI_API_KEY` | OpenAI API 키 (레시피 파싱) |
+| `OPENAI_MODEL` | 사용할 OpenAI 모델 (기본값: gpt-5.4-mini) |
+| `YOUTUBE_API_KEY` | YouTube Data API 키 |
+
+API 서버는 `apps/api/.env`에서 아래 값을 사용합니다. Supabase 값은 웹과 같은
+`NEXT_PUBLIC_*` 이름을 그대로 사용할 수 있습니다.
+
+| 변수명 | 설명 |
+|--------|------|
+| `PORT` | API 서버 포트 (기본값: 4000) |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon 키 |
 | `OPENAI_API_KEY` | OpenAI API 키 (레시피 파싱) |

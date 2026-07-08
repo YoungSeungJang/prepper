@@ -7,7 +7,7 @@ FROM base AS pruner
 WORKDIR /app
 RUN npm install -g turbo
 COPY . .
-RUN turbo prune web --docker
+RUN turbo prune web api --docker
 
 # ── 3. Install: 의존성 설치 (레이어 캐시 활용) ────────────────
 FROM base AS installer
@@ -22,9 +22,10 @@ WORKDIR /app
 COPY --from=installer /app .
 COPY --from=pruner /app/out/full/ .
 RUN pnpm --filter web build
+RUN pnpm --filter api build
 
-# ── 5. Runner: 최소 이미지 ────────────────────────────────────
-FROM node:20-alpine AS runner
+# ── 5. Web Runner: 최소 이미지 ────────────────────────────────
+FROM node:20-alpine AS web-runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -41,3 +42,22 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public            ./apps
 USER nextjs
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]
+
+# ── 6. API Runner ─────────────────────────────────────────────
+FROM node:20-alpine AS api-runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid  1001 api
+
+COPY --from=builder --chown=api:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=api:nodejs /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder --chown=api:nodejs /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder --chown=api:nodejs /app/apps/api/dist ./apps/api/dist
+
+USER api
+EXPOSE 4000
+CMD ["node", "apps/api/dist/server.js"]

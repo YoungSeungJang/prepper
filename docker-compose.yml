@@ -3,7 +3,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: web-runner
     ports:
       - "3000:3000"
     env_file:
-      - ./apps/web/.env.local
+      - ./apps/web/.env
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api-runner
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./apps/api/.env

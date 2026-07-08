@@ -16,6 +16,7 @@ git push (main)
             Nginx (HTTPS, Let's Encrypt)
                 ↕
             Next.js 컨테이너 (포트 3000)
+            Express API 컨테이너 (포트 4000)
 ```
 
 ## 인프라 구성
@@ -102,12 +103,33 @@ Nginx 설정 파일: `/etc/nginx/conf.d/prepper.conf`
 
 1. GitHub Actions 실행
 2. Dockerfile로 이미지 빌드
-3. ECR에 이미지 push (`latest` + 커밋 SHA 태그)
+3. ECR에 이미지 push (`web-latest`, `api-latest`, 커밋 SHA 태그)
 4. EC2에 SSH 접속
 5. SSM에서 환경변수 가져와 `/tmp/prepper.env`에 저장
-6. 기존 컨테이너 중지 & 삭제
-7. 새 컨테이너 실행 (`--restart unless-stopped`)
+6. 기존 web/api 컨테이너 중지 & 삭제
+7. 새 web/api 컨테이너 실행 (`--restart unless-stopped`)
 8. 임시 env 파일 삭제
+
+## API 컨테이너
+
+API 서버는 같은 ECR 리포지토리에 별도 태그로 배포합니다.
+
+| 컨테이너 | 이미지 태그 | 포트 |
+|----------|-------------|------|
+| `prepper-web` | `web-latest` | 3000 |
+| `prepper-api` | `api-latest` | 4000 |
+
+Nginx에서 `/api`를 API 컨테이너로 프록시하려면 EC2의 Nginx 설정에 아래 location을 추가합니다.
+
+```nginx
+location /api/ {
+    proxy_pass http://127.0.0.1:4000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
 
 ## 운영 참고
 
