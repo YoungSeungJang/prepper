@@ -2,6 +2,20 @@ import { EventEmitter } from "node:events";
 import { createRequest, createResponse } from "node-mocks-http";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "./app";
+import type { RecipeRepository } from "./modules/recipes/recipes.types";
+
+function createRecipes(overrides: Partial<RecipeRepository> = {}): RecipeRepository {
+  return {
+    createRecipe: vi.fn(),
+    createReviewDraft: vi.fn(),
+    deleteRecipe: vi.fn(),
+    findRecipeBySourceUrl: vi.fn(),
+    getRecipe: vi.fn(),
+    listRecipes: vi.fn(),
+    updateRecipe: vi.fn(),
+    ...overrides,
+  };
+}
 
 async function callApp(
   app: ReturnType<typeof createApp>,
@@ -22,9 +36,10 @@ async function callApp(
   });
   app.handle(request, response);
   await responseEnded;
+  const responseBody = response._getData();
 
   return {
-    body: response._getJSONData(),
+    body: responseBody ? response._getJSONData() : undefined,
     status: response.statusCode,
   };
 }
@@ -35,13 +50,7 @@ describe("api app", () => {
       auth: {
         getUser: vi.fn(),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      recipes: createRecipes(),
     });
 
     const response = await callApp(app, {
@@ -58,13 +67,7 @@ describe("api app", () => {
       auth: {
         getUser: vi.fn(),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      recipes: createRecipes(),
     });
 
     const response = await callApp(app, {
@@ -90,13 +93,7 @@ describe("api app", () => {
       auth: {
         getUser,
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      recipes: createRecipes(),
     });
 
     const response = await callApp(app, {
@@ -122,13 +119,7 @@ describe("api app", () => {
       auth: {
         getUser: vi.fn(),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      recipes: createRecipes(),
     });
 
     const response = await callApp(app, {
@@ -158,13 +149,9 @@ describe("api app", () => {
           error: null,
         }),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
-        getRecipe: vi.fn(),
+      recipes: createRecipes({
         listRecipes,
-      },
+      }),
     });
 
     const response = await callApp(app, {
@@ -207,13 +194,9 @@ describe("api app", () => {
           error: null,
         }),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
+      recipes: createRecipes({
         getRecipe,
-        listRecipes: vi.fn(),
-      },
+      }),
     });
 
     const response = await callApp(app, {
@@ -250,13 +233,9 @@ describe("api app", () => {
           error: null,
         }),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
+      recipes: createRecipes({
         getRecipe: vi.fn().mockResolvedValue(null),
-        listRecipes: vi.fn(),
-      },
+      }),
     });
 
     const response = await callApp(app, {
@@ -271,6 +250,153 @@ describe("api app", () => {
     expect(response.body).toEqual({ error: "Recipe not found" });
   });
 
+  it("updates recipe drafts for the authenticated user", async () => {
+    const updateRecipe = vi.fn().mockResolvedValue(undefined);
+    const app = createApp({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: "user-1",
+            },
+          },
+          error: null,
+        }),
+      },
+      recipes: createRecipes({
+        getRecipe: vi.fn().mockResolvedValue({
+          id: "recipe-1",
+          title: "검토 초안",
+        }),
+        updateRecipe,
+      }),
+    });
+
+    const response = await callApp(app, {
+      body: {
+        ingredients: [
+          { rawText: "김치 1컵", importance: "primary" },
+          { rawText: "두부 1모", importance: "secondary" },
+        ],
+        servings: "2인분",
+        sourceType: "web",
+        sourceUrl: "https://example.com/recipe",
+        steps: ["김치를 볶는다.", "물을 붓고 끓인다."],
+        title: "김치찌개",
+      },
+      headers: {
+        Authorization: "Bearer valid-token",
+      },
+      method: "PATCH",
+      url: "/recipes/recipe-1",
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      recipeId: "recipe-1",
+      status: "saved",
+    });
+    expect(updateRecipe).toHaveBeenCalledWith({
+      draft: {
+        ingredients: [
+          { rawText: "김치 1컵", importance: "primary" },
+          { rawText: "두부 1모", importance: "secondary" },
+        ],
+        servings: "2인분",
+        sourceType: "web",
+        sourceUrl: "https://example.com/recipe",
+        steps: [
+          { position: 1, body: "김치를 볶는다." },
+          { position: 2, body: "물을 붓고 끓인다." },
+        ],
+        title: "김치찌개",
+      },
+      id: "recipe-1",
+      token: "valid-token",
+      userId: "user-1",
+    });
+  });
+
+  it("rejects invalid recipe draft updates", async () => {
+    const updateRecipe = vi.fn();
+    const app = createApp({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: "user-1",
+            },
+          },
+          error: null,
+        }),
+      },
+      recipes: createRecipes({
+        getRecipe: vi.fn().mockResolvedValue({
+          id: "recipe-1",
+          title: "검토 초안",
+        }),
+        updateRecipe,
+      }),
+    });
+
+    const response = await callApp(app, {
+      body: {
+        ingredients: [],
+        sourceUrl: "https://example.com/recipe",
+        steps: ["끓인다."],
+        title: "김치찌개",
+      },
+      headers: {
+        Authorization: "Bearer valid-token",
+      },
+      method: "PATCH",
+      url: "/recipes/recipe-1",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "재료를 최소 1개 입력해 주세요." });
+    expect(updateRecipe).not.toHaveBeenCalled();
+  });
+
+  it("deletes recipes for the authenticated user", async () => {
+    const deleteRecipe = vi.fn().mockResolvedValue(undefined);
+    const app = createApp({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: "user-1",
+            },
+          },
+          error: null,
+        }),
+      },
+      recipes: createRecipes({
+        deleteRecipe,
+        getRecipe: vi.fn().mockResolvedValue({
+          id: "recipe-1",
+          title: "김치찌개",
+        }),
+      }),
+    });
+
+    const response = await callApp(app, {
+      headers: {
+        Authorization: "Bearer valid-token",
+      },
+      method: "DELETE",
+      url: "/recipes/recipe-1",
+    });
+
+    expect(response.status).toBe(204);
+    expect(response.body).toBeUndefined();
+    expect(deleteRecipe).toHaveBeenCalledWith({
+      id: "recipe-1",
+      token: "valid-token",
+      userId: "user-1",
+    });
+  });
+
   it("rejects invalid recipe import URLs", async () => {
     const app = createApp({
       auth: {
@@ -283,13 +409,7 @@ describe("api app", () => {
           error: null,
         }),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
-        findRecipeBySourceUrl: vi.fn(),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      recipes: createRecipes(),
     });
 
     const response = await callApp(app, {
@@ -326,13 +446,9 @@ describe("api app", () => {
           error: null,
         }),
       },
-      recipes: {
-        createRecipe: vi.fn(),
-        createReviewDraft: vi.fn(),
+      recipes: createRecipes({
         findRecipeBySourceUrl,
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      }),
     });
 
     const response = await callApp(app, {
@@ -387,13 +503,10 @@ describe("api app", () => {
         }),
       },
       draftBuilder: vi.fn().mockResolvedValue(draft),
-      recipes: {
+      recipes: createRecipes({
         createRecipe,
-        createReviewDraft: vi.fn(),
         findRecipeBySourceUrl: vi.fn().mockResolvedValue(null),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      }),
     });
 
     const response = await callApp(app, {
@@ -442,13 +555,10 @@ describe("api app", () => {
         }),
       },
       draftBuilder: vi.fn().mockResolvedValue(draft),
-      recipes: {
-        createRecipe: vi.fn(),
+      recipes: createRecipes({
         createReviewDraft,
         findRecipeBySourceUrl: vi.fn().mockResolvedValue(null),
-        getRecipe: vi.fn(),
-        listRecipes: vi.fn(),
-      },
+      }),
     });
 
     const response = await callApp(app, {

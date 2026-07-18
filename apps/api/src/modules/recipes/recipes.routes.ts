@@ -24,6 +24,8 @@ export function createRecipesRouter({
   router.post("/import", controller.startRecipeImport);
   router.get("/", controller.listRecipes);
   router.get("/:id", controller.getRecipe);
+  router.patch("/:id", controller.updateRecipe);
+  router.delete("/:id", controller.deleteRecipe);
 
   return router;
 }

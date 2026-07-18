@@ -101,4 +101,15 @@ export type RecipeRepository = {
     token: string;
     userId: string;
   }) => Promise<RecipeSummary[]>;
+  updateRecipe: (input: {
+    draft: RecipeDraftInput;
+    id: string;
+    token: string;
+    userId: string;
+  }) => Promise<void>;
+  deleteRecipe: (input: {
+    id: string;
+    token: string;
+    userId: string;
+  }) => Promise<void>;
 };

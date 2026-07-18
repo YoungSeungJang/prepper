@@ -200,5 +200,87 @@ export function createSupabaseRecipeRepository(input: {
 
       return data ? toRecipeSummary(data as RecipeRow) : null;
     },
+
+    async updateRecipe({ draft, id, token, userId }) {
+      const supabase = createRequestClient(token);
+      const { error: ingredientsDeleteError } = await supabase
+        .from("ingredients")
+        .delete()
+        .eq("recipe_id", id);
+
+      if (ingredientsDeleteError) {
+        throw ingredientsDeleteError;
+      }
+
+      const { error: stepsDeleteError } = await supabase
+        .from("recipe_steps")
+        .delete()
+        .eq("recipe_id", id);
+
+      if (stepsDeleteError) {
+        throw stepsDeleteError;
+      }
+
+      if (draft.ingredients.length > 0) {
+        const { error } = await supabase.from("ingredients").insert(
+          draft.ingredients.map((ingredient) => ({
+            recipe_id: id,
+            raw_text: ingredient.rawText,
+            normalized_name: ingredient.normalizedName,
+            amount_value: ingredient.amountValue,
+            amount_unit: ingredient.amountUnit,
+            importance: ingredient.importance,
+          })),
+        );
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      if (draft.steps.length > 0) {
+        const { error } = await supabase.from("recipe_steps").insert(
+          draft.steps.map((step) => ({
+            recipe_id: id,
+            position: step.position,
+            body: step.body,
+          })),
+        );
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      const { error: recipeUpdateError } = await supabase
+        .from("recipes")
+        .update({
+          title: draft.title,
+          source_url: draft.sourceUrl,
+          source_type: draft.sourceType,
+          thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+          servings: draft.servings ?? "1인분",
+          status: "saved",
+        })
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (recipeUpdateError) {
+        throw recipeUpdateError;
+      }
+    },
+
+    async deleteRecipe({ id, token, userId }) {
+      const supabase = createRequestClient(token);
+      const { error } = await supabase
+        .from("recipes")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (error) {
+        throw error;
+      }
+    },
   };
 }
