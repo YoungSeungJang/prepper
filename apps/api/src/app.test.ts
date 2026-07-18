@@ -464,6 +464,7 @@ describe("api app", () => {
 
     expect(response.status).toBe(409);
     expect(response.body).toEqual({
+      existingStatus: "saved",
       recipeId: "recipe-1",
       status: "duplicate",
     });
@@ -474,7 +475,7 @@ describe("api app", () => {
     });
   });
 
-  it("saves complete imported recipes", async () => {
+  it("creates review drafts for complete imports", async () => {
     const draft = {
       title: "김치찌개",
       sourceUrl: "https://example.com/recipe",
@@ -490,7 +491,8 @@ describe("api app", () => {
       parseConfidence: 0.8,
       parseWarnings: [],
     };
-    const createRecipe = vi.fn().mockResolvedValue("recipe-1");
+    const createRecipe = vi.fn();
+    const createReviewDraft = vi.fn().mockResolvedValue("recipe-1");
     const app = createApp({
       auth: {
         getUser: vi.fn().mockResolvedValue({
@@ -505,6 +507,7 @@ describe("api app", () => {
       draftBuilder: vi.fn().mockResolvedValue(draft),
       recipes: createRecipes({
         createRecipe,
+        createReviewDraft,
         findRecipeBySourceUrl: vi.fn().mockResolvedValue(null),
       }),
     });
@@ -523,10 +526,14 @@ describe("api app", () => {
     expect(response.status).toBe(201);
     expect(response.body).toEqual({
       recipeId: "recipe-1",
-      status: "saved",
+      status: "needs_review",
     });
-    expect(createRecipe).toHaveBeenCalledWith({
+    expect(createRecipe).not.toHaveBeenCalled();
+    expect(createReviewDraft).toHaveBeenCalledWith({
       draft,
+      parseConfidence: 0.8,
+      parseWarnings: [],
+      sourceVideoId: undefined,
       token: "valid-token",
       userId: "user-1",
     });
@@ -584,6 +591,50 @@ describe("api app", () => {
       sourceVideoId: "abc123",
       token: "valid-token",
       userId: "user-1",
+    });
+  });
+
+  it("returns JSON when recipe import fails unexpectedly", async () => {
+    const app = createApp({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: "user-1",
+            },
+          },
+          error: null,
+        }),
+      },
+      draftBuilder: vi.fn().mockResolvedValue({
+        title: "웹 레시피",
+        sourceUrl: "https://example.com/recipe",
+        sourceType: "web",
+        ingredients: [{ rawText: "재료를 확인해 주세요", importance: "primary" }],
+        steps: [{ position: 1, body: "원문을 보고 조리 순서를 확인해 주세요." }],
+        parseConfidence: 0.2,
+        parseWarnings: ["링크 내용을 가져오지 못했어요."],
+      }),
+      recipes: createRecipes({
+        createReviewDraft: vi.fn().mockRejectedValue(new Error("insert failed")),
+        findRecipeBySourceUrl: vi.fn().mockResolvedValue(null),
+      }),
+    });
+
+    const response = await callApp(app, {
+      body: {
+        sourceUrl: "https://example.com/recipe",
+      },
+      headers: {
+        Authorization: "Bearer valid-token",
+      },
+      method: "POST",
+      url: "/recipes/import",
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      error: "요청을 처리하지 못했습니다. 서버 로그를 확인해 주세요.",
     });
   });
 });

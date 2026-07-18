@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -32,9 +33,32 @@ export default function ImportScreen() {
 
     try {
       const result = await importRecipeFromUrl(trimmedUrl);
+      if (result.status === 'duplicate') {
+        const needsReview = result.existingStatus === 'needs_review';
+        Alert.alert(
+          needsReview ? '완성 대기 중인 레시피예요' : '이미 저장된 레시피예요',
+          needsReview
+            ? '같은 링크로 만든 미완성 레시피가 있어요. 이어서 완성할까요?'
+            : '같은 링크의 레시피가 이미 저장되어 있어요. 해당 레시피로 이동할까요?',
+          [
+            { style: 'cancel', text: '아니요' },
+            {
+              onPress: () => {
+                router.push({
+                  pathname: needsReview ? '/recipes/[id]/edit' : '/recipes/[id]',
+                  params: { id: result.recipeId },
+                });
+              },
+              text: needsReview ? '이어서 완성' : '이동',
+            },
+          ],
+        );
+        return;
+      }
+
       setSourceUrl('');
       router.push({
-        pathname: '/recipes/[id]',
+        pathname: '/recipes/[id]/edit',
         params: { id: result.recipeId },
       });
     } catch (error) {

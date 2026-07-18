@@ -120,13 +120,32 @@ export default function RecipeDetailScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>레시피 상세</Text>
+        <Text style={styles.eyebrow}>
+          {recipe.status === 'needs_review' ? '검토 필요' : '레시피 상세'}
+        </Text>
         <Text style={styles.title}>{recipe.title}</Text>
         <Text style={styles.description}>
           {recipe.sourceType === 'youtube' ? 'YouTube' : '웹'}에서 저장한{' '}
           {recipe.servings} 레시피입니다.
         </Text>
       </View>
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.editButton,
+          pressed && styles.editButtonPressed,
+        ]}
+        onPress={() => {
+          router.push({
+            pathname: '/recipes/[id]/edit',
+            params: { id: recipe.id },
+          });
+        }}
+      >
+        <Text style={styles.editButtonText}>
+          {recipe.status === 'needs_review' ? '검토하고 저장' : '레시피 수정'}
+        </Text>
+      </Pressable>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>재료</Text>
@@ -215,6 +234,21 @@ const styles = StyleSheet.create({
     color: '#6f6259',
     fontSize: 16,
     lineHeight: 24,
+  },
+  editButton: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#241812',
+  },
+  editButtonPressed: {
+    opacity: 0.74,
+  },
+  editButtonText: {
+    color: '#fffaf3',
+    fontSize: 16,
+    fontWeight: '800',
   },
   deleteButton: {
     minHeight: 52,

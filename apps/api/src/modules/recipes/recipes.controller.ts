@@ -141,6 +141,7 @@ export function createRecipesController({
 
     if (result.status === "duplicate") {
       response.status(409).json({
+        existingStatus: result.existingStatus,
         recipeId: result.recipeId,
         status: result.status,
       });

@@ -1,6 +1,5 @@
 import {
   buildImportedRecipeDraft,
-  shouldAutoSaveImportedRecipeDraft,
   type ImportedRecipeDraft,
 } from "./recipes-import.parser.js";
 import type { RecipeRepository, SourceType } from "./recipes.types.js";
@@ -105,6 +104,7 @@ export async function importRecipe({
 
   if (existingRecipe) {
     return {
+      existingStatus: existingRecipe.status,
       recipeId: existingRecipe.id,
       status: "duplicate" as const,
     };
@@ -114,19 +114,6 @@ export async function importRecipe({
     sourceType: validation.sourceType,
     sourceUrl: validation.sourceUrl,
   });
-
-  if (shouldAutoSaveImportedRecipeDraft(draft)) {
-    const recipeId = await recipes.createRecipe({
-      draft,
-      token,
-      userId,
-    });
-
-    return {
-      recipeId,
-      status: "saved" as const,
-    };
-  }
 
   const recipeId = await recipes.createReviewDraft({
     draft,

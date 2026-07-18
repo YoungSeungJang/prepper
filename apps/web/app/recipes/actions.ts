@@ -2,14 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import {
-  buildImportedRecipeDraft,
-  shouldAutoSaveImportedRecipeDraft,
-} from "@/lib/import-draft";
+import { buildImportedRecipeDraft } from "@/lib/import-draft";
 import { parseRecipeDraftForm } from "@/lib/recipe-draft";
 import { validateRecipeImportUrl } from "@/lib/recipe-import";
 import {
-  createRecipe,
   createReviewDraft,
   deleteRecipe,
   findRecipeBySourceUrl,
@@ -47,28 +43,22 @@ async function importRecipeFromForm(formData: FormData): Promise<RecipeImportFor
     };
   }
 
-  let destination = "/";
   try {
     const draft = await buildImportedRecipeDraft({
       sourceUrl: result.sourceUrl,
       sourceType: result.sourceType,
     });
 
-    if (shouldAutoSaveImportedRecipeDraft(draft)) {
-      const recipeId = await createRecipe(draft, user.id);
-      destination = `/?recipe=${recipeId}`;
-    } else {
-      const recipeId = await createReviewDraft({
-        draft,
-        sourceUrl: result.sourceUrl,
-        sourceType: result.sourceType,
-        sourceVideoId: result.youtubeVideoId,
-        userId: user.id,
-        parseConfidence: draft.parseConfidence,
-        parseWarnings: draft.parseWarnings,
-      });
-      destination = `/?category=pending&review=${recipeId}`;
-    }
+    const recipeId = await createReviewDraft({
+      draft,
+      sourceUrl: result.sourceUrl,
+      sourceType: result.sourceType,
+      sourceVideoId: result.youtubeVideoId,
+      userId: user.id,
+      parseConfidence: draft.parseConfidence,
+      parseWarnings: draft.parseWarnings,
+    });
+    redirect(`/?category=pending&review=${recipeId}`);
   } catch (error) {
     console.error("Failed to create review draft", error);
     return {
@@ -76,8 +66,6 @@ async function importRecipeFromForm(formData: FormData): Promise<RecipeImportFor
       sourceUrl: rawUrl,
     };
   }
-
-  redirect(destination);
 }
 
 export async function startRecipeImportFromModalAction(
