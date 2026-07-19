@@ -6,6 +6,7 @@ import {
   View,
   type ColorValue,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../lib/auth-context';
 
@@ -19,6 +20,8 @@ function tabIcon(name: TabIconName) {
 
 export default function TabsLayout() {
   const { isLoading, session } = useAuth();
+  const insets = useSafeAreaInsets();
+  const tabBarBottomPadding = Math.max(insets.bottom, 12);
 
   if (isLoading) {
     return (
@@ -42,10 +45,10 @@ export default function TabsLayout() {
         tabBarActiveTintColor: '#b85c38',
         tabBarInactiveTintColor: '#9b8d83',
         tabBarStyle: {
-          height: 72,
+          height: 60 + tabBarBottomPadding,
           borderTopColor: '#ead9cc',
           backgroundColor: '#fffaf3',
-          paddingBottom: 12,
+          paddingBottom: tabBarBottomPadding,
           paddingTop: 8,
         },
       }}

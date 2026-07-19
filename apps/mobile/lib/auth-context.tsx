@@ -1,5 +1,4 @@
 import type { Provider, Session } from '@supabase/supabase-js';
-import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import {
   createContext,
@@ -25,9 +24,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const redirectTo = Linking.createURL('auth/callback', {
-  scheme: 'prepper',
-});
+const redirectTo = 'prepper://auth/callback';
 
 function getAuthCallbackParams(callbackUrl: string) {
   const url = new URL(callbackUrl);
@@ -115,13 +112,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const code = callbackParams.get('code');
 
         if (code) {
-          const { error: exchangeError } =
+          const { data: exchangeData, error: exchangeError } =
             await supabase.auth.exchangeCodeForSession(code);
 
           if (exchangeError) {
             throw exchangeError;
           }
 
+          setSession(exchangeData.session);
           return true;
         }
 
@@ -129,15 +127,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const refreshToken = callbackParams.get('refresh_token');
 
         if (accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
+          const { data: sessionData, error: sessionError } =
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
 
           if (sessionError) {
             throw sessionError;
           }
 
+          setSession(sessionData.session);
           return true;
         }
 

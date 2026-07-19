@@ -1,5 +1,4 @@
-function readRequiredEnv(name: string) {
-  const value = process.env[name];
+function readRequiredEnv(name: string, value: string | undefined) {
 
   if (!value) {
     throw new Error(`${name} 환경변수가 설정되지 않았습니다.`);
@@ -9,7 +8,16 @@ function readRequiredEnv(name: string) {
 }
 
 export const mobileEnv = {
-  apiUrl: readRequiredEnv('EXPO_PUBLIC_API_URL'),
-  supabaseAnonKey: readRequiredEnv('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
-  supabaseUrl: readRequiredEnv('EXPO_PUBLIC_SUPABASE_URL'),
+  apiUrl: readRequiredEnv(
+    'EXPO_PUBLIC_API_URL',
+    process.env.EXPO_PUBLIC_API_URL,
+  ),
+  supabaseAnonKey: readRequiredEnv(
+    'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  ),
+  supabaseUrl: readRequiredEnv(
+    'EXPO_PUBLIC_SUPABASE_URL',
+    process.env.EXPO_PUBLIC_SUPABASE_URL,
+  ),
 };
