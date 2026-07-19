@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   deleteRecipe,
@@ -66,6 +67,8 @@ function TextRowInput({
 export default function RecipeEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const actionBarBottomPadding = Math.max(insets.bottom, 16);
   const [currentStep, setCurrentStep] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState(['']);
@@ -282,7 +285,10 @@ export default function RecipeEditScreen() {
       style={styles.screen}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: 86 + actionBarBottomPadding },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
@@ -365,7 +371,12 @@ export default function RecipeEditScreen() {
         ) : null}
       </ScrollView>
 
-      <View style={styles.actionBar}>
+      <View
+        style={[
+          styles.actionBar,
+          { paddingBottom: actionBarBottomPadding },
+        ]}
+      >
         <View style={styles.buttonRow}>
           {currentStep === 0 ? (
             <Pressable
@@ -427,7 +438,6 @@ const styles = StyleSheet.create({
   content: {
     gap: 16,
     padding: 20,
-    paddingBottom: 118,
   },
   loadingScreen: {
     flex: 1,
@@ -556,7 +566,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fffaf3',
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
   },
   secondaryButton: {
     minHeight: 54,

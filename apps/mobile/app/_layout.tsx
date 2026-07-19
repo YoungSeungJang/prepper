@@ -19,11 +19,11 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="recipes/[id]"
-          options={{ animation: 'fade', title: '레시피' }}
+          options={{ animation: 'none', title: '레시피' }}
         />
         <Stack.Screen
           name="recipes/[id]/edit"
-          options={{ animation: 'fade', title: '레시피 편집' }}
+          options={{ animation: 'none', title: '레시피 편집' }}
         />
       </Stack>
       <StatusBar style="dark" />
