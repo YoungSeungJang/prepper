@@ -25,6 +25,8 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const redirectTo = 'prepper://auth/callback';
+let pendingCallbackPromise: Promise<Session | null> | null = null;
+const completedCallbackUrls = new Set<string>();
 
 function getAuthCallbackParams(callbackUrl: string) {
   const url = new URL(callbackUrl);
@@ -39,6 +41,65 @@ function getAuthCallbackParams(callbackUrl: string) {
   }
 
   return params;
+}
+
+export async function completeOAuthCallback(callbackUrl: string) {
+  if (completedCallbackUrls.has(callbackUrl)) {
+    const { data } = await supabase.auth.getSession();
+    return data.session;
+  }
+
+  if (pendingCallbackPromise) {
+    return pendingCallbackPromise;
+  }
+
+  pendingCallbackPromise = (async () => {
+    const callbackParams = getAuthCallbackParams(callbackUrl);
+    const callbackError =
+      callbackParams.get('error_description') ?? callbackParams.get('error');
+
+    if (callbackError) {
+      throw new Error(callbackError);
+    }
+
+    const code = callbackParams.get('code');
+
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        throw error;
+      }
+
+      completedCallbackUrls.add(callbackUrl);
+      return data.session;
+    }
+
+    const accessToken = callbackParams.get('access_token');
+    const refreshToken = callbackParams.get('refresh_token');
+
+    if (accessToken && refreshToken) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      completedCallbackUrls.add(callbackUrl);
+      return data.session;
+    }
+
+    throw new Error('로그인 정보를 찾을 수 없습니다. 다시 시도해 주세요.');
+  })();
+
+  try {
+    return await pendingCallbackPromise;
+  } finally {
+    pendingCallbackPromise = null;
+  }
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -100,48 +161,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
           return false;
         }
 
-        const callbackParams = getAuthCallbackParams(result.url);
-        const callbackError =
-          callbackParams.get('error_description') ??
-          callbackParams.get('error');
-
-        if (callbackError) {
-          throw new Error(callbackError);
-        }
-
-        const code = callbackParams.get('code');
-
-        if (code) {
-          const { data: exchangeData, error: exchangeError } =
-            await supabase.auth.exchangeCodeForSession(code);
-
-          if (exchangeError) {
-            throw exchangeError;
-          }
-
-          setSession(exchangeData.session);
-          return true;
-        }
-
-        const accessToken = callbackParams.get('access_token');
-        const refreshToken = callbackParams.get('refresh_token');
-
-        if (accessToken && refreshToken) {
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-
-          if (sessionError) {
-            throw sessionError;
-          }
-
-          setSession(sessionData.session);
-          return true;
-        }
-
-        throw new Error('로그인 정보를 찾을 수 없습니다. 다시 시도해 주세요.');
+        const nextSession = await completeOAuthCallback(result.url);
+        setSession(nextSession);
+        return true;
       },
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
