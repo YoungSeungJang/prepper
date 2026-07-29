@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -14,13 +15,20 @@ import { listRecipes, type RecipeSummary } from '../../lib/api';
 
 type RecipeTab = 'saved' | 'needs_review';
 
-function statusLabel(status: RecipeSummary['status']) {
-  return status === 'needs_review' ? '검토 필요' : '저장됨';
+function recipeSourceLabel(recipe: RecipeSummary) {
+  return recipe.sourceType === 'youtube' ? 'YouTube에서 저장' : '웹에서 저장';
 }
 
-function recipeMeta(recipe: RecipeSummary) {
-  const source = recipe.sourceType === 'youtube' ? 'YouTube' : '웹';
-  return `${statusLabel(recipe.status)} · ${source} · ${recipe.servings}`;
+function recipeComplexity(recipe: RecipeSummary) {
+  return `재료 ${recipe.ingredients.length}개 · 조리순서 ${recipe.steps.length}단계`;
+}
+
+function recipeThumbnailUrl(recipe: RecipeSummary) {
+  return recipe.thumbnailUrl.startsWith('http') ? recipe.thumbnailUrl : null;
+}
+
+function recipePlaceholderText(recipe: RecipeSummary) {
+  return recipe.sourceType === 'youtube' ? 'YT' : 'WEB';
 }
 
 export default function RecipesScreen() {
@@ -151,13 +159,36 @@ export default function RecipesScreen() {
           }}
         >
           <Pressable style={activeTab === 'saved' ? styles.card : styles.pendingCard}>
-            <Text style={styles.cardMeta}>{recipeMeta(item)}</Text>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardDescription}>
-              {activeTab === 'saved'
-                ? item.reason
-                : '제목, 재료, 조리순서를 확인하고 저장할 수 있어요.'}
-            </Text>
+            <View style={styles.thumbnail}>
+              {recipeThumbnailUrl(item) ? (
+                <Image
+                  resizeMode="cover"
+                  source={{ uri: recipeThumbnailUrl(item) ?? undefined }}
+                  style={styles.thumbnailImage}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.thumbnailPlaceholder,
+                    item.sourceType === 'youtube' && styles.youtubePlaceholder,
+                  ]}
+                >
+                  <Text style={styles.thumbnailPlaceholderText}>
+                    {recipePlaceholderText(item)}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.cardBody}>
+              <Text numberOfLines={2} style={styles.cardTitle}>
+                {item.title}
+              </Text>
+              <Text style={styles.cardSource}>{recipeSourceLabel(item)}</Text>
+              <Text style={styles.cardMeta}>{recipeComplexity(item)}</Text>
+              {activeTab === 'needs_review' ? (
+                <Text style={styles.cardAction}>이어서 완성하기</Text>
+              ) : null}
+            </View>
           </Pressable>
         </Link>
       )}
@@ -241,39 +272,81 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   card: {
-    gap: 8,
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ead9cc',
     borderRadius: 8,
     backgroundColor: '#fff',
-    padding: 18,
+    padding: 14,
   },
   pendingCard: {
-    gap: 8,
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#f1c3a9',
     borderRadius: 8,
     backgroundColor: '#fff7f1',
-    padding: 18,
+    padding: 14,
   },
   pendingMeta: {
     color: '#b85c38',
     fontSize: 13,
     fontWeight: '900',
   },
-  cardMeta: {
+  thumbnail: {
+    width: 84,
+    height: 84,
+    overflow: 'hidden',
+    borderRadius: 8,
+    backgroundColor: '#f5e9df',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ead9cc',
+  },
+  youtubePlaceholder: {
+    backgroundColor: '#fff0ea',
+  },
+  thumbnailPlaceholderText: {
     color: '#8f4d31',
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '900',
+  },
+  cardBody: {
+    flex: 1,
+    gap: 6,
+    minWidth: 0,
   },
   cardTitle: {
     color: '#241812',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
+    lineHeight: 23,
   },
-  cardDescription: {
+  cardSource: {
+    color: '#8f4d31',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  cardMeta: {
     color: '#6f6259',
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  cardAction: {
+    alignSelf: 'flex-start',
+    color: '#b85c38',
+    fontSize: 14,
+    fontWeight: '900',
+    paddingTop: 2,
   },
 });
