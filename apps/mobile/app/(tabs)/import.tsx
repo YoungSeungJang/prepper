@@ -11,14 +11,23 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { importRecipeFromUrl } from '../../lib/api';
+import { recipeQueryKeys } from '../../lib/recipe-queries';
 
 export default function ImportScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sourceUrl, setSourceUrl] = useState('');
+  const importMutation = useMutation({
+    mutationFn: importRecipeFromUrl,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: recipeQueryKeys.list });
+    },
+  });
+  const isSubmitting = importMutation.isPending;
 
   async function handleSubmit() {
     const trimmedUrl = sourceUrl.trim();
@@ -29,10 +38,8 @@ export default function ImportScreen() {
     }
 
     setErrorMessage(null);
-    setIsSubmitting(true);
-
     try {
-      const result = await importRecipeFromUrl(trimmedUrl);
+      const result = await importMutation.mutateAsync(trimmedUrl);
       if (result.status === 'duplicate') {
         const needsReview = result.existingStatus === 'needs_review';
         Alert.alert(
@@ -67,8 +74,6 @@ export default function ImportScreen() {
           ? error.message
           : '레시피를 가져오지 못했습니다.',
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 

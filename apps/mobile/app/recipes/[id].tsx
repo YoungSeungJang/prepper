@@ -1,5 +1,4 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -9,8 +8,10 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteRecipe, getRecipe, type RecipeSummary } from '../../lib/api';
+import { recipeQueryKeys } from '../../lib/recipe-queries';
 
 function ingredientText(recipe: RecipeSummary) {
   return recipe.ingredients.map((ingredient) => ingredient.rawText).join(', ');
@@ -19,67 +20,45 @@ function ingredientText(recipe: RecipeSummary) {
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [recipe, setRecipe] = useState<RecipeSummary | null>(null);
-
-  useEffect(() => {
-    if (!id) {
-      return;
-    }
-
-    let isMounted = true;
-
-    async function loadRecipe() {
-      setErrorMessage(null);
-      setIsLoading(true);
-
-      try {
-        const data = await getRecipe(id);
-
-        if (isMounted) {
-          setRecipe(data.recipe);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : '레시피를 불러오지 못했습니다.',
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadRecipe();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id]);
+  const queryClient = useQueryClient();
+  const recipeId = id ?? '';
+  const {
+    data,
+    error,
+    isLoading,
+  } = useQuery({
+    enabled: Boolean(recipeId),
+    queryFn: () => getRecipe(recipeId),
+    queryKey: recipeQueryKeys.detail(recipeId),
+  });
+  const recipe = data?.recipe ?? null;
+  const errorMessage = error instanceof Error
+    ? error.message
+    : error
+      ? '레시피를 불러오지 못했습니다.'
+      : null;
+  const deleteMutation = useMutation({
+    mutationFn: deleteRecipe,
+    onSuccess: async () => {
+      queryClient.removeQueries({ queryKey: recipeQueryKeys.detail(recipeId) });
+      await queryClient.invalidateQueries({ queryKey: recipeQueryKeys.list });
+    },
+  });
+  const isDeleting = deleteMutation.isPending;
 
   async function handleDelete() {
     if (!id || isDeleting) {
       return;
     }
 
-    setIsDeleting(true);
-
     try {
-      await deleteRecipe(id);
+      await deleteMutation.mutateAsync(id);
       router.replace('/(tabs)');
     } catch (error) {
       Alert.alert(
         '삭제할 수 없어요',
         error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.',
       );
-    } finally {
-      setIsDeleting(false);
     }
   }
 

@@ -1,5 +1,5 @@
-import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Link, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,8 +10,11 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { listRecipes, type RecipeSummary } from '../../lib/api';
+import { recipeQueryKeys } from '../../lib/recipe-queries';
 
 type RecipeTab = 'saved' | 'needs_review';
 
@@ -32,38 +35,53 @@ function recipePlaceholderText(recipe: RecipeSummary) {
 }
 
 export default function RecipesScreen() {
+  const params = useLocalSearchParams<{
+    recipeSaved?: string;
+    savedAt?: string;
+  }>();
+  const insets = useSafeAreaInsets();
+  const shownToastKeyRef = useRef<string | null>(null);
   const [activeTab, setActiveTab] = useState<RecipeTab>('saved');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
-
-  async function loadRecipes({ refreshing = false } = {}) {
-    if (refreshing) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-    setErrorMessage(null);
-
-    try {
-      const data = await listRecipes();
-      setRecipes(data.recipes);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : '레시피를 불러오지 못했습니다.',
-      );
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const {
+    data,
+    error,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryFn: listRecipes,
+    queryKey: recipeQueryKeys.list,
+  });
+  const recipes = data?.recipes ?? [];
+  const errorMessage = error instanceof Error
+    ? error.message
+    : error
+      ? '레시피를 불러오지 못했습니다.'
+      : null;
 
   useEffect(() => {
-    void loadRecipes();
-  }, []);
+    if (params.recipeSaved !== '1') {
+      return;
+    }
+
+    const toastKey = params.savedAt ?? params.recipeSaved;
+    if (shownToastKeyRef.current === toastKey) {
+      return;
+    }
+
+    shownToastKeyRef.current = toastKey;
+    setActiveTab('saved');
+    setToastMessage('레시피 카드가 저장됐어요.');
+
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [params.recipeSaved, params.savedAt]);
 
   const reviewDrafts = recipes.filter((recipe) => recipe.status === 'needs_review');
   const savedRecipes = recipes.filter((recipe) => recipe.status === 'saved');
@@ -82,7 +100,8 @@ export default function RecipesScreen() {
       };
 
   return (
-    <FlatList
+    <View style={styles.screen}>
+      <FlatList
       contentContainerStyle={styles.content}
       data={visibleRecipes}
       keyExtractor={(item) => item.id}
@@ -90,7 +109,7 @@ export default function RecipesScreen() {
         <View style={styles.header}>
           <Text style={styles.eyebrow}>내 레시피</Text>
           <Text style={styles.title}>오늘 만들 레시피를 바로 찾아요.</Text>
-          {isLoading ? (
+          {isLoading || (isFetching && recipes.length === 0) ? (
             <ActivityIndicator color="#b85c38" style={styles.indicator} />
           ) : null}
           {errorMessage ? (
@@ -145,9 +164,11 @@ export default function RecipesScreen() {
       }
       refreshControl={
         <RefreshControl
-          refreshing={isRefreshing}
+          refreshing={isFetching && recipes.length > 0}
           tintColor="#b85c38"
-          onRefresh={() => loadRecipes({ refreshing: true })}
+          onRefresh={() => {
+            void refetch();
+          }}
         />
       }
       renderItem={({ item }) => (
@@ -192,11 +213,26 @@ export default function RecipesScreen() {
           </Pressable>
         </Link>
       )}
-    />
+      />
+      {toastMessage ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.toast,
+            { bottom: 76 + Math.max(insets.bottom, 12) },
+          ]}
+        >
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   content: {
     gap: 14,
     padding: 20,
@@ -348,5 +384,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
     paddingTop: 2,
+  },
+  toast: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#241812',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  toastText: {
+    color: '#fffaf3',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });

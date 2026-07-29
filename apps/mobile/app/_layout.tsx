@@ -1,36 +1,51 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider } from '../lib/auth-context';
 
 export default function RootLayout() {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 30 * 1000,
+          },
+        },
+      }),
+  );
+
   return (
-    <AuthProvider>
-      <Stack
-        screenOptions={{
-          contentStyle: { backgroundColor: '#fffaf3' },
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: '#fffaf3' },
-          headerTitleStyle: { color: '#241812' },
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="auth/callback"
-          options={{ animation: 'none', headerShown: false }}
-        />
-        <Stack.Screen
-          name="recipes/[id]"
-          options={{ animation: 'none', title: '레시피' }}
-        />
-        <Stack.Screen
-          name="recipes/[id]/edit"
-          options={{ animation: 'none', title: '레시피 편집' }}
-        />
-      </Stack>
-      <StatusBar style="dark" />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Stack
+          screenOptions={{
+            contentStyle: { backgroundColor: '#fffaf3' },
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: '#fffaf3' },
+            headerTitleStyle: { color: '#241812' },
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="auth/callback"
+            options={{ animation: 'none', headerShown: false }}
+          />
+          <Stack.Screen
+            name="recipes/[id]"
+            options={{ animation: 'none', title: '레시피' }}
+          />
+          <Stack.Screen
+            name="recipes/[id]/edit"
+            options={{ animation: 'none', title: '레시피 편집' }}
+          />
+        </Stack>
+        <StatusBar style="dark" />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

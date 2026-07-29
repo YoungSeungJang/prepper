@@ -1,4 +1,5 @@
 import type { Provider, Session } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import * as WebBrowser from 'expo-web-browser';
 import {
   createContext,
@@ -103,6 +104,7 @@ export async function completeOAuthCallback(callbackUrl: string) {
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
 
@@ -121,6 +123,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!nextSession) {
+        queryClient.clear();
+      }
       setSession(nextSession);
       setIsLoading(false);
     });
@@ -129,7 +134,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -171,9 +176,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         if (error) {
           throw error;
         }
+
+        queryClient.clear();
       },
     }),
-    [isLoading, session],
+    [isLoading, queryClient, session],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

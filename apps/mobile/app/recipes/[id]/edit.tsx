@@ -20,6 +20,8 @@ import {
   updateRecipe,
   type RecipeSummary,
 } from '../../../lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { recipeQueryKeys } from '../../../lib/recipe-queries';
 
 const stepLabels = ['제목', '재료', '조리순서'];
 
@@ -67,63 +69,78 @@ function TextRowInput({
 export default function RecipeEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const actionBarBottomPadding = Math.max(insets.bottom, 16);
   const [currentStep, setCurrentStep] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState(['']);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [recipe, setRecipe] = useState<RecipeSummary | null>(null);
   const [steps, setSteps] = useState(['']);
   const [title, setTitle] = useState('');
+  const recipeId = id ?? '';
+  const {
+    data,
+    error,
+    isLoading,
+  } = useQuery({
+    enabled: Boolean(recipeId),
+    queryFn: () => getRecipe(recipeId),
+    queryKey: recipeQueryKeys.detail(recipeId),
+  });
+  const recipe = data?.recipe ?? null;
+  const loadErrorMessage = error instanceof Error
+    ? error.message
+    : error
+      ? '레시피를 불러오지 못했습니다.'
+      : null;
+  const saveMutation = useMutation({
+    mutationFn: (input: {
+      ingredients: string[];
+      recipe: RecipeSummary;
+      steps: string[];
+      title: string;
+    }) =>
+      updateRecipe(recipeId, {
+        ingredients: input.ingredients,
+        servings: input.recipe.servings || undefined,
+        sourceType: input.recipe.sourceType,
+        sourceUrl: input.recipe.sourceUrl,
+        steps: input.steps,
+        thumbnailUrl: input.recipe.thumbnailUrl,
+        title: input.title,
+      }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: recipeQueryKeys.list }),
+        queryClient.invalidateQueries({
+          queryKey: recipeQueryKeys.detail(recipeId),
+        }),
+      ]);
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteRecipe,
+    onSuccess: async () => {
+      queryClient.removeQueries({ queryKey: recipeQueryKeys.detail(recipeId) });
+      await queryClient.invalidateQueries({ queryKey: recipeQueryKeys.list });
+    },
+  });
+  const isSaving = saveMutation.isPending;
+  const isDeleting = deleteMutation.isPending;
 
   useEffect(() => {
-    if (!id) {
+    if (!recipe) {
       return;
     }
 
-    let isMounted = true;
-
-    async function loadRecipe() {
-      setErrorMessage(null);
-      setIsLoading(true);
-
-      try {
-        const data = await getRecipe(id);
-
-        if (isMounted) {
-          setRecipe(data.recipe);
-          setTitle(data.recipe.title);
-          setIngredients(
-            withTrailingBlank(
-              data.recipe.ingredients.map((ingredient) => ingredient.rawText),
-            ),
-          );
-          setSteps(withTrailingBlank(data.recipe.steps));
-        }
-      } catch (error) {
-        if (isMounted) {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : '레시피를 불러오지 못했습니다.',
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadRecipe();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id]);
+    setTitle(recipe.title);
+    setIngredients(
+      withTrailingBlank(
+        recipe.ingredients.map((ingredient) => ingredient.rawText),
+      ),
+    );
+    setSteps(withTrailingBlank(recipe.steps));
+  }, [recipe]);
 
   async function handleSave() {
     if (!id || !recipe || isSaving || isDeleting) {
@@ -149,29 +166,26 @@ export default function RecipeEditScreen() {
     }
 
     setErrorMessage(null);
-    setIsSaving(true);
 
     try {
-      await updateRecipe(id, {
+      await saveMutation.mutateAsync({
         ingredients: cleanedIngredients,
-        servings: recipe.servings || undefined,
-        sourceType: recipe.sourceType,
-        sourceUrl: recipe.sourceUrl,
+        recipe,
         steps: cleanedSteps,
-        thumbnailUrl: recipe.thumbnailUrl,
         title: title.trim(),
       });
       router.replace({
-        pathname: '/recipes/[id]',
-        params: { id },
+        pathname: '/(tabs)',
+        params: {
+          recipeSaved: '1',
+          savedAt: Date.now().toString(),
+        },
       });
     } catch (error) {
       Alert.alert(
         '저장할 수 없어요',
         error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.',
       );
-    } finally {
-      setIsSaving(false);
     }
   }
 
@@ -189,9 +203,8 @@ export default function RecipeEditScreen() {
         { style: 'cancel', text: '취소' },
         {
           onPress: async () => {
-            setIsDeleting(true);
             try {
-              await deleteRecipe(id);
+              await deleteMutation.mutateAsync(id);
               router.replace('/(tabs)');
             } catch (error) {
               Alert.alert(
@@ -200,8 +213,6 @@ export default function RecipeEditScreen() {
                   ? error.message
                   : '잠시 후 다시 시도해주세요.',
               );
-            } finally {
-              setIsDeleting(false);
             }
           },
           style: 'destructive',
@@ -273,7 +284,7 @@ export default function RecipeEditScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>레시피를 열 수 없어요</Text>
           <Text style={styles.body}>
-            {errorMessage ?? '레시피를 찾지 못했습니다.'}
+            {loadErrorMessage ?? errorMessage ?? '레시피를 찾지 못했습니다.'}
           </Text>
         </View>
       </View>
