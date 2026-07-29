@@ -266,6 +266,7 @@ describe("api app", () => {
       recipes: createRecipes({
         getRecipe: vi.fn().mockResolvedValue({
           id: "recipe-1",
+          thumbnailUrl: "https://img.youtube.com/vi/abc123/hqdefault.jpg",
           title: "검토 초안",
         }),
         updateRecipe,
@@ -309,8 +310,59 @@ describe("api app", () => {
           { position: 1, body: "김치를 볶는다." },
           { position: 2, body: "물을 붓고 끓인다." },
         ],
+        thumbnailUrl: "https://img.youtube.com/vi/abc123/hqdefault.jpg",
         title: "김치찌개",
       },
+      id: "recipe-1",
+      token: "valid-token",
+      userId: "user-1",
+    });
+  });
+
+  it("replaces fallback thumbnails for YouTube recipe updates", async () => {
+    const updateRecipe = vi.fn().mockResolvedValue(undefined);
+    const app = createApp({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: "user-1",
+            },
+          },
+          error: null,
+        }),
+      },
+      recipes: createRecipes({
+        getRecipe: vi.fn().mockResolvedValue({
+          id: "recipe-1",
+          thumbnailUrl: "/recipe-jeyuk.svg",
+          title: "검토 초안",
+        }),
+        updateRecipe,
+      }),
+    });
+
+    const response = await callApp(app, {
+      body: {
+        ingredients: ["돼지고기 300g"],
+        sourceType: "youtube",
+        sourceUrl: "https://www.youtube.com/watch?v=abc123",
+        steps: ["고기를 볶는다."],
+        thumbnailUrl: "/recipe-jeyuk.svg",
+        title: "제육볶음",
+      },
+      headers: {
+        Authorization: "Bearer valid-token",
+      },
+      method: "PATCH",
+      url: "/recipes/recipe-1",
+    });
+
+    expect(response.status).toBe(200);
+    expect(updateRecipe).toHaveBeenCalledWith({
+      draft: expect.objectContaining({
+        thumbnailUrl: "https://img.youtube.com/vi/abc123/hqdefault.jpg",
+      }),
       id: "recipe-1",
       token: "valid-token",
       userId: "user-1",

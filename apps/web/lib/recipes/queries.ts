@@ -151,7 +151,7 @@ export async function createRecipe(draft: RecipeDraftInput, userId: string) {
       title: draft.title,
       source_url: draft.sourceUrl,
       source_type: draft.sourceType,
-      thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+      thumbnail_url: draft.thumbnailUrl ?? null,
       servings: draft.servings ?? "1인분",
       status: "saved",
     })
@@ -216,7 +216,7 @@ export async function createReviewDraft(input: {
       source_url: input.sourceUrl,
       source_type: input.sourceType,
       source_video_id: input.sourceVideoId,
-      thumbnail_url: "/recipe-jeyuk.svg",
+      thumbnail_url: input.draft.thumbnailUrl ?? null,
       servings: input.draft.servings ?? "1인분",
       status: "needs_review",
     })
@@ -333,7 +333,7 @@ export async function updateRecipeFromDraft(recipeId: string, draft: RecipeDraft
       title: draft.title,
       source_url: draft.sourceUrl,
       source_type: draft.sourceType,
-      thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+      thumbnail_url: draft.thumbnailUrl ?? null,
       servings: draft.servings ?? "1인분",
       status: "saved",
     })

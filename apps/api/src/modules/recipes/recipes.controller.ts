@@ -9,6 +9,39 @@ function getStatusFilter(value: unknown): RecipeStatusFilter | undefined {
   return value === "saved" || value === "needs_review" ? value : undefined;
 }
 
+const fallbackThumbnailUrl = "/recipe-jeyuk.svg";
+
+function isFallbackThumbnailUrl(value: string | undefined) {
+  return !value || value === fallbackThumbnailUrl;
+}
+
+function getYoutubeVideoId(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl);
+
+    if (url.hostname === "youtu.be") {
+      return url.pathname.split("/").filter(Boolean)[0] ?? "";
+    }
+
+    if (url.hostname === "youtube.com" || url.hostname.endsWith(".youtube.com")) {
+      if (url.pathname.startsWith("/shorts/")) {
+        return url.pathname.split("/").filter(Boolean)[1] ?? "";
+      }
+
+      return url.searchParams.get("v") ?? "";
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function getYoutubeThumbnailUrl(sourceUrl: string) {
+  const videoId = getYoutubeVideoId(sourceUrl);
+  return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
+}
+
 type RecipesControllerDependencies = {
   draftBuilder?: (input: {
     sourceType: "youtube" | "web";
@@ -79,8 +112,16 @@ export function createRecipesController({
       return;
     }
 
+    const draft = { ...draftResult.draft };
+    if (draft.sourceType === "youtube" && isFallbackThumbnailUrl(draft.thumbnailUrl)) {
+      draft.thumbnailUrl = getYoutubeThumbnailUrl(draft.sourceUrl);
+    }
+    if (isFallbackThumbnailUrl(draft.thumbnailUrl) && !isFallbackThumbnailUrl(recipe.thumbnailUrl)) {
+      draft.thumbnailUrl = recipe.thumbnailUrl;
+    }
+
     await recipes.updateRecipe({
-      draft: draftResult.draft,
+      draft,
       id: recipeId,
       token: authenticatedRequest.auth.token,
       userId: authenticatedRequest.auth.user.id,

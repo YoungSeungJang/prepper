@@ -54,6 +54,7 @@ export type RecipeUpdateInput = {
   title: string;
   sourceUrl: string;
   sourceType: RecipeSummary['sourceType'];
+  thumbnailUrl?: string;
   servings?: string;
   ingredients: string[];
   steps: string[];

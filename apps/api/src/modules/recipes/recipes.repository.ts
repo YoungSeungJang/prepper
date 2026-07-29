@@ -27,7 +27,7 @@ export function createSupabaseRecipeRepository(input: {
           title: draft.title,
           source_url: draft.sourceUrl,
           source_type: draft.sourceType,
-          thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+          thumbnail_url: draft.thumbnailUrl ?? null,
           servings: draft.servings ?? "1인분",
           status: "saved",
         })
@@ -91,7 +91,7 @@ export function createSupabaseRecipeRepository(input: {
           source_url: draft.sourceUrl,
           source_type: draft.sourceType,
           source_video_id: sourceVideoId,
-          thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+          thumbnail_url: draft.thumbnailUrl ?? null,
           servings: draft.servings ?? "1인분",
           status: "needs_review",
         })
@@ -258,7 +258,7 @@ export function createSupabaseRecipeRepository(input: {
           title: draft.title,
           source_url: draft.sourceUrl,
           source_type: draft.sourceType,
-          thumbnail_url: draft.thumbnailUrl ?? "/recipe-jeyuk.svg",
+          thumbnail_url: draft.thumbnailUrl ?? null,
           servings: draft.servings ?? "1인분",
           status: "saved",
         })

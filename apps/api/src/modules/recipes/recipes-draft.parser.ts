@@ -106,6 +106,7 @@ export function parseRecipeDraftJson(body: unknown): DraftJsonResult {
     draft: {
       ingredients,
       servings: getString(record.servings) || undefined,
+      thumbnailUrl: getString(record.thumbnailUrl) || undefined,
       sourceType: getSourceType(record.sourceType),
       sourceUrl,
       steps,

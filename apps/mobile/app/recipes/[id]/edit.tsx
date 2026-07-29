@@ -158,6 +158,7 @@ export default function RecipeEditScreen() {
         sourceType: recipe.sourceType,
         sourceUrl: recipe.sourceUrl,
         steps: cleanedSteps,
+        thumbnailUrl: recipe.thumbnailUrl,
         title: title.trim(),
       });
       router.replace({

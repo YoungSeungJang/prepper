@@ -3,6 +3,7 @@ import type { IngredientImportance, SourceType } from "./recipes.types.js";
 type ImportedDraft = {
   title: string;
   servings?: string;
+  thumbnailUrl?: string;
   ingredients: string[];
   steps: string[];
   warnings?: string[];
@@ -145,6 +146,53 @@ function getMetaContent(html: string, name: string) {
   return content ? decodeBasicEntities(stripTags(content)) : "";
 }
 
+function normalizeThumbnailUrl(value: string, sourceUrl: string) {
+  if (!value.trim()) {
+    return undefined;
+  }
+
+  try {
+    return new URL(value.trim(), sourceUrl).toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function getJsonLdImageUrl(value: unknown, sourceUrl: string): string | undefined {
+  if (typeof value === "string") {
+    return normalizeThumbnailUrl(value, sourceUrl);
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const imageUrl = getJsonLdImageUrl(item, sourceUrl);
+      if (imageUrl) {
+        return imageUrl;
+      }
+    }
+    return undefined;
+  }
+
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  return (
+    getJsonLdImageUrl(record.url, sourceUrl) ??
+    getJsonLdImageUrl(record.contentUrl, sourceUrl)
+  );
+}
+
+function getPageThumbnailUrl(html: string, sourceUrl: string) {
+  return normalizeThumbnailUrl(
+    getMetaContent(html, "og:image") ||
+      getMetaContent(html, "twitter:image") ||
+      getMetaContent(html, "twitter:image:src"),
+    sourceUrl,
+  );
+}
+
 export function extractReadableTextFromHtml(html: string, sourceUrl: string) {
   const title = getPageTitle(html);
   const description =
@@ -192,6 +240,7 @@ function extractSectionItems(html: string, headingPattern: RegExp) {
 }
 
 export function parseRecipeHtmlDraft(html: string, sourceUrl: string): ImportedDraft {
+  const pageThumbnailUrl = getPageThumbnailUrl(html, sourceUrl);
   const fallbackSectionIngredients = extractSectionItems(
     html,
     /재료|ingredients?/i,
@@ -218,6 +267,7 @@ export function parseRecipeHtmlDraft(html: string, sourceUrl: string): ImportedD
       return {
         title: asText(recipe.name) || getPageTitle(html) || sourceUrl,
         servings: yieldValue || undefined,
+        thumbnailUrl: getJsonLdImageUrl(recipe.image, sourceUrl) ?? pageThumbnailUrl,
         ingredients: ingredients.length > 0 ? ingredients : fallbackSectionIngredients,
         steps: instructions.length > 0 ? instructions : fallbackSectionSteps,
       };
@@ -228,6 +278,7 @@ export function parseRecipeHtmlDraft(html: string, sourceUrl: string): ImportedD
 
   return {
     title: getPageTitle(html) || sourceUrl,
+    thumbnailUrl: pageThumbnailUrl,
     ingredients: fallbackSectionIngredients,
     steps: fallbackSectionSteps,
   };
@@ -346,6 +397,11 @@ function getYoutubeVideoId(sourceUrl: string) {
   } catch {
     return "";
   }
+}
+
+function getYoutubeThumbnailUrl(sourceUrl: string) {
+  const videoId = getYoutubeVideoId(sourceUrl);
+  return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
 }
 
 function hasLikelyRecipeDetails(text: string) {
@@ -743,6 +799,9 @@ export async function buildImportedRecipeDraft(input: ImportDraftInput) {
     title: imported.title,
     sourceUrl: input.sourceUrl,
     sourceType: input.sourceType,
+    thumbnailUrl:
+      imported.thumbnailUrl ??
+      (input.sourceType === "youtube" ? getYoutubeThumbnailUrl(input.sourceUrl) : undefined),
     servings: imported.servings,
     ingredients,
     steps,
