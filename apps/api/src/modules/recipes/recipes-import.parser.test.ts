@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildImportedRecipeDraft,
+  fetchYoutubeSourceText,
   parseRecipeHtmlDraft,
 } from "./recipes-import.parser.js";
 
@@ -73,5 +74,69 @@ describe("recipes import parser", () => {
     });
 
     expect(draft.thumbnailUrl).toBe("https://img.youtube.com/vi/abc123/hqdefault.jpg");
+  });
+
+  it("does not add YouTube transcript text when the description has no steps", async () => {
+    const originalApiKey = process.env.YOUTUBE_API_KEY;
+    process.env.YOUTUBE_API_KEY = "youtube-key";
+
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      const requestUrl = String(url);
+
+      if (requestUrl.startsWith("https://www.googleapis.com/youtube/v3/videos")) {
+        return Response.json({
+          items: [
+            {
+              snippet: {
+                channelTitle: "요리채널",
+                description: "맛있는 볶음밥 쇼츠",
+                title: "계란볶음밥",
+              },
+            },
+          ],
+        });
+      }
+
+      if (requestUrl.startsWith("https://www.youtube.com/watch")) {
+        return new Response(`
+          <script>
+            var ytInitialPlayerResponse = {
+              "captions": {
+                "playerCaptionsTracklistRenderer": {
+                  "captionTracks": [
+                    { "baseUrl": "https://example.com/caption.xml", "languageCode": "ko" }
+                  ]
+                }
+              }
+            };
+          </script>
+        `);
+      }
+
+      if (requestUrl === "https://example.com/caption.xml") {
+        return new Response(`
+          <transcript>
+            <text>계란 두 개를 풀어주세요</text>
+            <text>밥을 넣고 간장으로 볶아주세요</text>
+          </transcript>
+        `);
+      }
+
+      throw new Error(`Unexpected fetch: ${requestUrl}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const text = await fetchYoutubeSourceText("https://www.youtube.com/shorts/abc123");
+
+      expect(text).toContain("제목: 계란볶음밥");
+      expect(text).not.toContain("자막:");
+      expect(text).not.toContain("계란 두 개를 풀어주세요");
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ hostname: "www.youtube.com" }),
+      );
+    } finally {
+      process.env.YOUTUBE_API_KEY = originalApiKey;
+    }
   });
 });

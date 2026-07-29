@@ -113,7 +113,7 @@ describe("parseRecipeHtmlDraft", () => {
         "youtube",
       ),
     ).toEqual([
-      "유튜브 설명/자막에서 레시피 정보를 충분히 찾지 못했어요. 재료와 조리 순서를 직접 확인해 주세요.",
+      "유튜브 설명에서 레시피 정보를 충분히 찾지 못했어요. 재료와 조리 순서를 직접 확인해 주세요.",
       "재료를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
       "조리 순서를 충분히 가져오지 못했어요. 원문을 보고 확인해 주세요.",
     ]);
@@ -143,7 +143,7 @@ describe("parseRecipeHtmlDraft", () => {
         steps: [{ position: 1, body: "원문을 보고 조리 순서를 확인해 주세요." }],
         parseConfidence: 0.2,
         parseWarnings: [
-          "유튜브 설명/자막에서 레시피 정보를 충분히 찾지 못했어요. 재료와 조리 순서를 직접 확인해 주세요.",
+          "유튜브 설명에서 레시피 정보를 충분히 찾지 못했어요. 재료와 조리 순서를 직접 확인해 주세요.",
         ],
       }),
     ).toBe(false);
@@ -176,7 +176,7 @@ describe("parseRecipeHtmlDraft", () => {
     expect(text).not.toContain("window.ad");
   });
 
-  it("adds YouTube transcript text when the description is not enough", async () => {
+  it("does not add YouTube transcript text when the description is not enough", async () => {
     const originalFetch = globalThis.fetch;
     const originalApiKey = process.env.YOUTUBE_API_KEY;
     process.env.YOUTUBE_API_KEY = "youtube-key";
@@ -230,134 +230,9 @@ describe("parseRecipeHtmlDraft", () => {
       const text = await fetchYoutubeSourceText("https://www.youtube.com/shorts/abc123");
 
       expect(text).toContain("제목: 계란볶음밥");
-      expect(text).toContain("자막:");
-      expect(text).toContain("계란 두 개를 풀어주세요");
-      expect(text).toContain("밥을 넣고 간장으로 볶아주세요");
-    } finally {
-      globalThis.fetch = originalFetch;
-      process.env.YOUTUBE_API_KEY = originalApiKey;
-    }
-  });
-
-  it("still checks YouTube transcript when the description only says recipe", async () => {
-    const originalFetch = globalThis.fetch;
-    const originalApiKey = process.env.YOUTUBE_API_KEY;
-    process.env.YOUTUBE_API_KEY = "youtube-key";
-
-    globalThis.fetch = async (input) => {
-      const url = input.toString();
-
-      if (url.startsWith("https://www.googleapis.com/youtube/v3/videos")) {
-        return Response.json({
-          items: [
-            {
-              snippet: {
-                title: "오이무침",
-                channelTitle: "요리채널",
-                description: "초간단 오이무침 레시피",
-              },
-            },
-          ],
-        });
-      }
-
-      if (url.startsWith("https://www.youtube.com/watch")) {
-        return new Response(`
-          <script>
-            var ytInitialPlayerResponse = {
-              "captions": {
-                "playerCaptionsTracklistRenderer": {
-                  "captionTracks": [
-                    { "baseUrl": "https://example.com/cucumber-caption.xml", "languageCode": "ko" }
-                  ]
-                }
-              }
-            };
-          </script>
-        `);
-      }
-
-      if (url === "https://example.com/cucumber-caption.xml") {
-        return new Response(`
-          <transcript>
-            <text>오이는 얇게 썰고 고춧가루와 식초를 넣어 무쳐주세요</text>
-          </transcript>
-        `);
-      }
-
-      throw new Error(`Unexpected fetch: ${url}`);
-    };
-
-    try {
-      const text = await fetchYoutubeSourceText("https://www.youtube.com/shorts/abc123");
-
-      expect(text).toContain("자막:");
-      expect(text).toContain("오이는 얇게 썰고 고춧가루와 식초를 넣어 무쳐주세요");
-    } finally {
-      globalThis.fetch = originalFetch;
-      process.env.YOUTUBE_API_KEY = originalApiKey;
-    }
-  });
-
-  it("extracts YouTube transcript from a nested player response object", async () => {
-    const originalFetch = globalThis.fetch;
-    const originalApiKey = process.env.YOUTUBE_API_KEY;
-    process.env.YOUTUBE_API_KEY = "youtube-key";
-
-    globalThis.fetch = async (input) => {
-      const url = input.toString();
-
-      if (url.startsWith("https://www.googleapis.com/youtube/v3/videos")) {
-        return Response.json({
-          items: [
-            {
-              snippet: {
-                title: "두부조림",
-                channelTitle: "요리채널",
-                description: "오늘의 쇼츠",
-              },
-            },
-          ],
-        });
-      }
-
-      if (url.startsWith("https://www.youtube.com/watch")) {
-        return new Response(`
-          <script>
-            var ytInitialPlayerResponse = {
-              "videoDetails": {
-                "title": "두부조림",
-                "thumbnail": { "thumbnails": [{ "url": "https://example.com/thumb.jpg" }] }
-              },
-              "captions": {
-                "playerCaptionsTracklistRenderer": {
-                  "captionTracks": [
-                    { "baseUrl": "https://example.com/tofu-caption.xml", "languageCode": "ko" }
-                  ]
-                }
-              }
-            };
-            var meta = {"after": true};
-          </script>
-        `);
-      }
-
-      if (url === "https://example.com/tofu-caption.xml") {
-        return new Response(`
-          <transcript>
-            <text>두부를 굽고 간장 양념을 넣어 졸여주세요</text>
-          </transcript>
-        `);
-      }
-
-      throw new Error(`Unexpected fetch: ${url}`);
-    };
-
-    try {
-      const text = await fetchYoutubeSourceText("https://www.youtube.com/shorts/tofu123");
-
-      expect(text).toContain("자막:");
-      expect(text).toContain("두부를 굽고 간장 양념을 넣어 졸여주세요");
+      expect(text).not.toContain("자막:");
+      expect(text).not.toContain("계란 두 개를 풀어주세요");
+      expect(text).not.toContain("밥을 넣고 간장으로 볶아주세요");
     } finally {
       globalThis.fetch = originalFetch;
       process.env.YOUTUBE_API_KEY = originalApiKey;
