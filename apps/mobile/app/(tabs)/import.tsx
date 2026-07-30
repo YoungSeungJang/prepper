@@ -86,7 +86,8 @@ export default function ImportScreen() {
         <Text style={styles.eyebrow}>레시피 가져오기</Text>
         <Text style={styles.title}>보고 있던 레시피 링크를 저장해요.</Text>
         <Text style={styles.description}>
-          YouTube나 웹페이지 주소를 붙여넣으면 내 레시피로 정리합니다.
+          YouTube나 웹페이지 주소를 붙여넣고 제목, 재료, 조리순서를 확인해
+          카드로 정리합니다.
         </Text>
       </View>
 

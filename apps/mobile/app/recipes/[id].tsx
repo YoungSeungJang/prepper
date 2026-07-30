@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,8 +14,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteRecipe, getRecipe, type RecipeSummary } from '../../lib/api';
 import { recipeQueryKeys } from '../../lib/recipe-queries';
 
-function ingredientText(recipe: RecipeSummary) {
-  return recipe.ingredients.map((ingredient) => ingredient.rawText).join(', ');
+function recipeSourceLabel(recipe: RecipeSummary) {
+  return recipe.sourceType === 'youtube' ? 'YouTube에서 저장' : '웹에서 저장';
+}
+
+function recipeComplexity(recipe: RecipeSummary) {
+  return `재료 ${recipe.ingredients.length}개 · 조리순서 ${recipe.steps.length}단계`;
 }
 
 export default function RecipeDetailScreen() {
@@ -62,6 +67,26 @@ export default function RecipeDetailScreen() {
     }
   }
 
+  async function handleOpenSource() {
+    if (!recipe?.sourceUrl) {
+      return;
+    }
+
+    try {
+      const canOpen = await Linking.canOpenURL(recipe.sourceUrl);
+      if (!canOpen) {
+        throw new Error('원본 링크를 열 수 없습니다.');
+      }
+
+      await Linking.openURL(recipe.sourceUrl);
+    } catch (error) {
+      Alert.alert(
+        '원본을 열 수 없어요',
+        error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.',
+      );
+    }
+  }
+
   function confirmDelete() {
     Alert.alert('레시피 삭제', '이 레시피를 삭제할까요?', [
       { style: 'cancel', text: '취소' },
@@ -103,10 +128,12 @@ export default function RecipeDetailScreen() {
           {recipe.status === 'needs_review' ? '검토 필요' : '레시피 상세'}
         </Text>
         <Text style={styles.title}>{recipe.title}</Text>
-        <Text style={styles.description}>
-          {recipe.sourceType === 'youtube' ? 'YouTube' : '웹'}에서 저장한{' '}
-          {recipe.servings} 레시피입니다.
-        </Text>
+        <View style={styles.metaRow}>
+          <View style={styles.sourceBadge}>
+            <Text style={styles.sourceBadgeText}>{recipeSourceLabel(recipe)}</Text>
+          </View>
+          <Text style={styles.description}>{recipeComplexity(recipe)}</Text>
+        </View>
       </View>
 
       <Pressable
@@ -126,13 +153,37 @@ export default function RecipeDetailScreen() {
         </Text>
       </Pressable>
 
+      <Pressable
+        style={({ pressed }) => [
+          styles.sourceButton,
+          pressed && styles.sourceButtonPressed,
+        ]}
+        onPress={handleOpenSource}
+      >
+        <Text style={styles.sourceButtonText}>
+          {recipe.sourceType === 'youtube' ? 'YouTube에서 보기' : '원본 페이지 열기'}
+        </Text>
+      </Pressable>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>재료</Text>
-        <Text style={styles.body}>
-          {recipe.ingredients.length > 0
-            ? ingredientText(recipe)
-            : '등록된 재료가 없습니다.'}
-        </Text>
+        {recipe.ingredients.length > 0 ? (
+          <View style={styles.ingredientGrid}>
+            {recipe.ingredients.map((ingredient, index) => (
+              <View key={`${index}-${ingredient.rawText}`} style={styles.ingredientPill}>
+                <Text
+                  ellipsizeMode="tail"
+                  numberOfLines={2}
+                  style={styles.ingredientText}
+                >
+                  {ingredient.rawText}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.body}>등록된 재료가 없습니다.</Text>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -196,6 +247,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sourceBadge: {
+    borderRadius: 8,
+    backgroundColor: '#fff0ea',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  sourceBadgeText: {
+    color: '#8f4d31',
+    fontSize: 13,
+    fontWeight: '800',
+  },
   section: {
     gap: 10,
     borderWidth: 1,
@@ -214,6 +282,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  ingredientGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  ingredientPill: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ead9cc',
+    borderRadius: 8,
+    backgroundColor: '#fffaf3',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  ingredientText: {
+    color: '#241812',
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 21,
+  },
   editButton: {
     minHeight: 52,
     alignItems: 'center',
@@ -226,6 +317,23 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: '#fffaf3',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  sourceButton: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#d8c6b9',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  sourceButtonPressed: {
+    opacity: 0.74,
+  },
+  sourceButtonText: {
+    color: '#8f4d31',
     fontSize: 16,
     fontWeight: '800',
   },
