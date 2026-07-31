@@ -177,10 +177,6 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.formTitle}>소셜 계정으로 시작하기</Text>
-          <Text style={styles.formDescription}>
-            웹에서 쓰던 카카오 또는 Google 계정으로 그대로 로그인합니다.
-          </Text>
           <Pressable
             disabled={pendingProvider !== null}
             onPress={() => handleSocialLogin('kakao')}
@@ -392,17 +388,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 12,
-  },
-  formTitle: {
-    color: '#241812',
-    fontSize: 20,
-    fontWeight: '900',
-  },
-  formDescription: {
-    color: '#6f6259',
-    fontSize: 14,
-    lineHeight: 21,
-    paddingBottom: 4,
   },
   authButton: {
     minHeight: 54,
