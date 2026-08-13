@@ -12,12 +12,20 @@ export function RecipeSearchControl({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(initialQuery);
-  const lastSyncedQuery = useRef(initialQuery);
+  const [queryDraft, setQueryDraft] = useState({
+    initialQuery,
+    value: initialQuery,
+  });
+  const query =
+    queryDraft.initialQuery === initialQuery ? queryDraft.value : initialQuery;
+  const lastSyncedQuery = useRef(initialQuery.trim());
+
+  useEffect(() => {
+    lastSyncedQuery.current = initialQuery.trim();
+  }, [initialQuery]);
 
   useEffect(() => {
     const trimmed = query.trim();
-
     if (trimmed === lastSyncedQuery.current) {
       return;
     }
@@ -40,7 +48,7 @@ export function RecipeSearchControl({
       lastSyncedQuery.current = trimmed;
       const nextPath = params.toString() ? `/?${params.toString()}` : "/";
       router.replace(nextPath, { scroll: false });
-    }, 700);
+    }, 300);
 
     return () => window.clearTimeout(handle);
   }, [activeCategory, query, router, searchParams]);
@@ -53,7 +61,9 @@ export function RecipeSearchControl({
       </svg>
       <input
         aria-label="레시피나 재료 검색"
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) =>
+          setQueryDraft({ initialQuery, value: event.target.value })
+        }
         placeholder="레시피나 재료 검색"
         value={query}
         style={{

@@ -603,7 +603,6 @@ async function AppHome({ activeCategory, recipes, reviewError, reviewRecipeId, s
           <RecipeSearchControl
             activeCategory={activeCategory}
             initialQuery={searchQuery}
-            key={`${activeCategory}:${searchQuery}`}
           />
         </div>
 
