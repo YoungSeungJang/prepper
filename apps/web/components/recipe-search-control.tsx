@@ -40,7 +40,7 @@ export function RecipeSearchControl({
       lastSyncedQuery.current = trimmed;
       const nextPath = params.toString() ? `/?${params.toString()}` : "/";
       router.replace(nextPath, { scroll: false });
-    }, 300);
+    }, 700);
 
     return () => window.clearTimeout(handle);
   }, [activeCategory, query, router, searchParams]);
